@@ -15,6 +15,7 @@ A save game editor for inXile Entertainment's Wasteland 3
 - Edit money
 - Edit perks
 - Add/Edit items in party inventory
+- Improve usability (refactor layout), write better logic for File Dialog
 
 ## Installation
 
