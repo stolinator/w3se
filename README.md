@@ -19,9 +19,14 @@ A save game editor for inXile Entertainment's Wasteland 3
 ## Installation
 
 1. Clone the repository to your local system
+  - `git clone https://github.com/stolinaotr/w3se.git`
 2. [Optional] set up a virtual environment
+  - `cd` into the repository folder
+  - `python3 -m venv w3se`
 3. Use `pip` to install dependencies
+  - `pip install -r requirements.txt`
 4. Run `main.py`
+  - `python src/main.py`
 
 ## Usage
 
