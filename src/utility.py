@@ -238,10 +238,3 @@ editable_traits = [
     'intelligence', 'charisma', 'availableAttributePoints', 'availableSkillPoints',
 ]
 """
-
-
-
-md, sd = load('Autosave1.xml')
-xml = parse(sd)
-yuri = Character(xml, 0)
-kwon = Character(xml, 4)
