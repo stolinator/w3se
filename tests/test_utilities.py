@@ -5,7 +5,8 @@ cwd = os.path.abspath(os.curdir)
 sys.path.append(cwd)
 
 from bs4 import BeautifulSoup as soup
-from src.utility import load, save, parse, Character
+from src.utility import load, save, parse
+from src.models import Character, GameSave
 
 filename = 'test_save.xml'
 
@@ -22,23 +23,18 @@ def test_load():
 
 
 @pytest.fixture
-def meta_data_and_save_data():
+def metadata_and_savedata():
     return load(filename)
 
-def test_parse(meta_data_and_save_data):
+@pytest.fixture
+def xml(metadata_and_savedata):
+    return parse(metadata_and_savedata[1])
 
-    meta_data, save_data = meta_data_and_save_data
+def test_parse(metadata_and_savedata):
+
+    meta_data, save_data = metadata_and_savedata
 
     xml = parse(save_data)
     assert type(xml) == soup
     assert len(xml('pc')) == 2
 
-@pytest.fixture
-def xml(meta_and_save_data):
-    return parse(meta_and_save_data[1])
-
-def test_game_data(xml):
-    game = GameData(xml)
-    assert len(game.characters) == 2
-    assert int(game.money) > 0
-    assert game.characters[0].name == 'yuri'
