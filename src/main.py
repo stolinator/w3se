@@ -2,9 +2,10 @@ import sys, os, shutil
 from PyQt6.QtWidgets import (QApplication, QWidget, QMainWindow, QTabWidget,
     QLabel, QPushButton, QMenuBar, QVBoxLayout, QHBoxLayout, QFileDialog,
     QTableView, QMessageBox)
-from PyQt6.QtCore import Qt, QAbstractTableModel
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap, QFont, QAction
-from utility import load, save, parse, Character, isSkill
+from models import CharacterModel
+from utility import load, save, parse, Character
 
 
 class MainWindow(QMainWindow):
@@ -89,45 +90,6 @@ class MainWindow(QMainWindow):
         if ok:
             print(save_filename)
             save(save_filename, self.meta_data, str(self.xml.save))
-
-class CharacterModel(QAbstractTableModel):
-
-    def __init__(self, parent=None, character=None):
-        super().__init__(parent)
-        self.character = character
-
-    def headerData(self, section, orientation, role):
-        if role == Qt.ItemDataRole.DisplayRole:
-            return self.character.fields[section]
-        return None
-
-    def rowCount(self, parent=None):
-        return len(self.character.fields)
-
-    def columnCount(self, parent=None):
-        return 1
-
-    def setData(self, index, value, role=Qt.ItemDataRole.EditRole):
-        if role == Qt.ItemDataRole.EditRole:
-            trait = self.character.fields[index.row()]
-            self.character.mod_skill(trait, value) if isSkill(trait) else self.character.mod(trait, value)
-        return True
-
-    def data(self, index, role=Qt.ItemDataRole.DisplayRole):
-        row = index.row()
-        column = index.column()
-
-        if role == Qt.ItemDataRole.DisplayRole:
-            trait = self.character.fields[index.row()]
-            return str(self.character.fetch_skill(trait) if isSkill(trait) else self.character.fetch(trait))
-        return None
-
-    def flags(self, index):
-        result = Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled
-        # disable edits on the name column
-        if index.row() == 1:
-            result = result | Qt.ItemFlag.ItemIsEditable
-        return result
 
 
 if __name__ == '__main__':

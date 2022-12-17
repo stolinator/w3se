@@ -4,18 +4,16 @@ A save game editor for inXile Entertainment's Wasteland 3
 
 *This was tested against save files from the Linux Steam version (1.6.9.420.309496) without any DLC.*
 
-## Functionality
+## Usage
+
+Use the `File- > Load Save Game` dialog. Browse to your save game file, and edit away!
+
+## Features
 
 - View party members and edit their stats
 - Attributes and Attribute points
 - Add items to your party's inventory
 
-#### Planned Features
-
-- Edit money
-- Edit perks
-- Add/Edit items in party inventory
-- Improve usability (refactor layout), write better logic for File Dialog
 
 ## Installation
 
@@ -29,7 +27,22 @@ A save game editor for inXile Entertainment's Wasteland 3
 4. Run `main.py`
   - `python src/main.py`
 
-## Usage
+## Development Notes
 
-Use the `File- > Load Save Game` dialog. Browse to your save game file, and edit away!
+### Running Tests
 
+After installing dependencies, just run the `pytest` command.
+
+### Running the Linter
+
+Run `pylama src` to view any linter conflicts.
+
+#### Planned Functionality
+
+Currently rewriting the model/view between PyQt and BeautifulSoup, which should
+enable the following actions:
+
+- Edit money
+- Edit perks
+- Add/Edit items in party inventory
+- Improve usability (refactor layout), write better logic for File Dialog
