@@ -4,14 +4,13 @@ from PyQt6.QtWidgets import (QApplication, QWidget, QMainWindow, QTabWidget,
     QTableView, QMessageBox)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap, QFont, QAction
-from models import CharacterModel
-from utility import load, save, parse, Character
+from models import CharacterModel, GameSave
+from utility import load, save, parse
 
 
 class MainWindow(QMainWindow):
 
     def __init__(self):
-        self.characters = []
         super().__init__()
         self.initUI()
         #self.setUpWindow()
@@ -28,12 +27,14 @@ class MainWindow(QMainWindow):
         main_vbox = QVBoxLayout()
         tabs = QTabWidget()
         # loop through characters, create edit page with layout
-        for character in self.characters:
+        for character in self.game.characters:
             model = CharacterModel(character=character)
             table = QTableView()
             table.setModel(model)
             table.horizontalHeader().hide()
-            name = character.displayName.string if character.displayName else 'None'
+            #name = character.displayName.string if character.displayName else 'None'
+            print(character)
+            name = character.displayName
             character_page = QWidget()
             vbox = QVBoxLayout()
             vbox.addWidget(table)
@@ -70,10 +71,9 @@ class MainWindow(QMainWindow):
         filename, ok = QFileDialog.getOpenFileName(self, 'Open Save Game File',
             os.curdir, 'Game Save Files (*.xml)')
         if ok:
-            self.meta_data, save_data = load(filename)
+            meta, save = load(filename)
+            self.game = GameSave(meta, parse(save))
             self.filename = filename
-            self.xml = parse(save_data)
-            self.characters = [Character(self.xml,i) for i in range(len(self.xml('pc')))]
             self.save_changes_act.setDisabled(False)
             self.setUpWindow()
 
@@ -89,7 +89,8 @@ class MainWindow(QMainWindow):
             os.path.split(self.filename)[1], 'Save Game Files (*.xml)')
         if ok:
             print(save_filename)
-            save(save_filename, self.meta_data, str(self.xml.save))
+            save(save_filename, self.game.meta_data, self.game.save_data)
+            #save(save_filename, self.meta_data, str(self.xml.save))
 
 
 if __name__ == '__main__':
