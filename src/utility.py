@@ -1,7 +1,8 @@
 import os, re, lzf
 from bs4 import BeautifulSoup as soup
 
-def load(filename):
+def load(filename: str) -> (str, soup):
+    """Takes a filename as input. Seperates text metadata from compressed XML"""
     with open(filename, 'rb') as f:
 
         raw_data = f.readlines()
@@ -51,6 +52,8 @@ def update_meta_data(meta_data, data_size, save_data_size):
 
 
 def parse(data):
+    """
+    """
     xml = soup(data, 'lxml-xml')
     characters = xml('pc')
     return xml
@@ -91,21 +94,24 @@ class Character:
         else:
             print('need to implement generation of new skills!')
 
-
-
     @property
-    def fields(self):
-        return [
-            'displayName', 'coordination',
-            'luck', 'awareness', 'strength', 'speed', 'intelligence',
-            'charisma', 'availableAttributePoints', 'availableSkillPoints',
-            'automatic_weapons', 'big_guns', 'small_arms', 'sniper_rifles',
-            'animal_whisperer', 'bartering', 'nerd_stuff', 'explosives',
-            'first_aid', 'leadership', 'lockpicking', 'mechanics', 'survival',
-            'toaster_repair', 'weapon_modding', 'hard_ass', 'kiss_ass',
-            'sneaky_shit', 'armor_modding'
-        ]
-        #return [field.name for field in self.xml('pc')[self.i].children]
+    def perks(self):
+        #print(self.xml('pc')[self.i])
+        perks = self.xml('pc')[self.i]('perks')[0]
+        return [perk('perkname')[0].string for perk in perks]
+
+
+
+    fields = [
+        'displayName', 'coordination',
+        'luck', 'awareness', 'strength', 'speed', 'intelligence',
+        'charisma', 'availableAttributePoints', 'availableSkillPoints',
+        'automatic_weapons', 'big_guns', 'small_arms', 'sniper_rifles',
+        'animal_whisperer', 'bartering', 'nerd_stuff', 'explosives',
+        'first_aid', 'leadership', 'lockpicking', 'mechanics', 'survival',
+        'toaster_repair', 'weapon_modding', 'hard_ass', 'kiss_ass',
+        'sneaky_shit', 'armor_modding'
+    ]
 
 
     displayName = property(

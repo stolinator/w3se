@@ -1,1 +1,6 @@
 w3se
+
+build
+main.spec
+
+*__pycache__
