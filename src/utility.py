@@ -52,8 +52,6 @@ def update_meta_data(meta_data, data_size, save_data_size):
 
 
 def parse(data):
-    """
-    """
     xml = soup(data, 'lxml-xml')
     characters = xml('pc')
     return xml

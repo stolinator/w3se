@@ -1,10 +1,10 @@
 import sys, os, shutil
 from PyQt6.QtWidgets import (QApplication, QWidget, QMainWindow, QTabWidget,
     QLabel, QPushButton, QMenuBar, QVBoxLayout, QHBoxLayout, QFileDialog,
-    QTableView, QMessageBox, QListWidget, QLineEdit)
+    QTableView, QMessageBox, QListView, QLineEdit)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap, QFont, QAction
-from models import CharacterModel, GameSave, ItemModel
+from models import CharacterModel, GameSave, ItemModel, PerkModel
 from utility import load, save, parse
 
 
@@ -55,15 +55,24 @@ class MainWindow(QMainWindow):
         # loop through characters, create edit page with layout
         for character in self.game.characters:
             model = CharacterModel(character=character)
-            table = QTableView()
-            table.setModel(model)
-            table.horizontalHeader().hide()
+            skilltable = QTableView()
+            skilltable.setModel(model)
+            skilltable.horizontalHeader().hide()
             #name = character.displayName.string if character.displayName else 'None'
-            print(character)
+            #print(character)
+            perklist = QListView()
+            perklist.setModel(character.perks)
             name = character.displayName
             character_page = QWidget()
             vbox = QVBoxLayout()
-            vbox.addWidget(table)
+            hbox = QHBoxLayout()
+            hbox_vbox = QVBoxLayout()
+            #vbox.addWidget(table)
+            vbox.addLayout(hbox)
+            hbox.addWidget(skilltable)
+            hbox.addLayout(hbox_vbox)
+            hbox_vbox.addWidget(QLabel(f"Edit {name}'s Perks"))
+            hbox_vbox.addWidget(perklist)
             character_page.setLayout(vbox)
             tabs.addTab(character_page, name)
         character_edit_vbox.addWidget(tabs)
