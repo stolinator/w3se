@@ -1,5 +1,6 @@
-from PyQt6.QtCore import Qt, QAbstractTableModel
+from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex
 from bs4 import BeautifulSoup as soup
+from uuid import uuid4
 
 class CharacterModel(QAbstractTableModel):
 
@@ -31,7 +32,7 @@ class CharacterModel(QAbstractTableModel):
         if role == Qt.ItemDataRole.DisplayRole:
             trait = Character.fields[index.row()]
             #print(f'accessing trait {trait}')
-            print(f'field: {trait}, value: {self.character[trait]}')
+            #print(f'field: {trait}, value: {self.character[trait]}')
             return str(self.character[trait])
             #trait = self.character.fields[index.row()]
             #return str(self.character.fetch_skill(trait) if isSkill(trait) else self.character.fetch(trait))
@@ -63,9 +64,12 @@ class GameSave:
     def money(self, value):
         self.__xml('money')[0].string = str(value)
 
+    def set_money(self, value):
+        self.__xml('money')[0].string = str(value)
+
     @property
     def inventory(self):
-        return self.__xml('hostInventory')
+        return self.__xml.save.hostInventory
 
     """
     @property
@@ -157,3 +161,86 @@ editable_traits = [
     'intelligence', 'charisma', 'availableAttributePoints', 'availableSkillPoints',
 ]
 """
+
+def new_item(templateName, quantity=1):
+    pass
+
+class ItemModel(QAbstractTableModel):
+
+    fields = ['templateName', 'slot', 'ammoLoaded', 'uid', 'isLockedForMerchant',
+        'merchantBarterLevelRequirement', 'quantity']
+
+    def __init__(self, parent=None, xml=None):
+        super().__init__(parent)
+        self.xml = xml
+
+    def headerData(self, section, orientation, role):
+        #print(section, orientation)
+        #print(type(orientation), str(orientation))
+        if role == Qt.ItemDataRole.DisplayRole:
+            if str(orientation) == 'Orientation.Horizontal':
+                return self.fields[section]
+            elif str(orientation) == 'Orientation.Vertical':
+                return self.xml('item')[section].templateName.string
+        return None
+
+    def rowCount(self, parent=None):
+        return len(self.xml('item')) or 0
+
+    def columnCount(self, parent=None):
+        return len(self.fields)
+
+    def data(self, index, role=Qt.ItemDataRole.DisplayRole):
+        print(f'row: {index.row()}, column: {index.column()}')
+
+        if role == Qt.ItemDataRole.DisplayRole:
+            item = self.xml('item')[index.row()]
+            field = self.fields[index.column()]
+            """
+            print(f'field: {field}')
+            print(f'item: {item}')
+            print(f'item name: {item.name}')
+            print(f'item template name: {item.templateName}')
+            """
+            #return item[field].string
+            return str(item(field)[0].string)
+            """
+            trait = Character.fields[index.row()]
+            #print(f'accessing trait {trait}')
+            print(f'field: {trait}, value: {self.character[trait]}')
+            return str(self.character[trait])
+            #trait = self.character.fields[index.row()]
+            #return str(self.character.fetch_skill(trait) if isSkill(trait) else self.character.fetch(trait))
+            """
+            return 'unimplemented'
+        return None
+
+    def setData(self, index, value, role=Qt.ItemDataRole.EditRole):
+        if role == Qt.ItemDataRole.EditRole:
+            item = self.xml('item')[index.row()]
+            field = self.fields[index.column()]
+            item(field)[0].string = str(value)
+        return True
+
+    def flags(self, index):
+        """
+        result = Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled
+        # disable edits on the name column
+        if index.row() > 0:
+            result = result | Qt.ItemFlag.ItemIsEditable
+
+        return result
+        """
+        result = Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsEditable
+        return result
+
+    def removeRow(self, row, parent=None):
+        return self.removeRows(row, 1, parent)
+
+    def removeRows(self, row, count, parent):
+        self.beginRemoveRows(parent, row, row + count)
+        for i in range(row, row + count):
+            item = self.xml('item')[row]
+            item.decompose()
+        self.endRemoveRows() # removing all items creates a bug
+        return True
