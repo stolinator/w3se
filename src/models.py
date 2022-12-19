@@ -1,6 +1,7 @@
 from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex, QAbstractListModel
 from bs4 import BeautifulSoup as soup
 from uuid import uuid4
+from utility import load, save, parse
 
 class CharacterModel(QAbstractTableModel):
 
@@ -45,15 +46,15 @@ class Game:
 
     def __init__(self, filename):
         self.filename = filename
-        self.load(filename)
-        self.characters = [Character(pc, i) for i, pc in enumerate(xml('pc'))]
+        self.load()
 
     def load(self):
         self.metadata, self.rawdata = load(self.filename)
         self.__xml = parse(self.rawdata)
+        self.characters = [Character(pc, i) for i, pc in enumerate(self.__xml('pc'))]
 
-    def save(self):
-        save(save_filename, self.meta_data, self.save_data)
+    def save(self, save_filename):
+        save(save_filename, self.metadata, self.save_data)
 
     @property
     def save_data(self):

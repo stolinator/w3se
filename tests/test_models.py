@@ -6,25 +6,21 @@ sys.path.append(cwd)
 
 from bs4 import BeautifulSoup as soup
 from src.utility import load, save, parse
-from src.models import Character, GameSave, CharacterModel, ItemModel, PerkModel
+from src.models import Character, Game, CharacterModel, ItemModel, PerkModel
 from collections import namedtuple
 
 filename = 'test_save.xml'
 
 @pytest.fixture
 def gamesave():
-    md, sd = load(filename)
-    xml = parse(sd)
-    return GameSave(md, xml)
+    return Game(filename)
 
-def test_game_data():
-    md, sd = load(filename)
-    xml = parse(sd)
-    game = GameSave(md, xml)
+def test_game_data(gamesave):
+    game = gamesave
     assert len(game.characters) == 2
     assert int(game.money) >= 0
     assert game.characters[0].displayName == 'Yuri'
-    assert len(game.meta_data.split('\n')) == 14
+    assert len(game.metadata.split('\n')) == 14
     assert len(game.characters) == 2
 
 def test_game_data_manipulation(gamesave):
@@ -77,7 +73,8 @@ def test_manipulation_persists(gamesave):
     # make an edit and save to new file
     yuri, spence = gamesave.characters
     yuri.bartering = '10'
-    save(new_savefile, gamesave.meta_data, gamesave.save_data)
+    #save(new_savefile, gamesave.meta_data, gamesave.save_data)
+    gamesave.save(new_savefile)
 
     # load new file and check for changes
     metadata, savedata = load(new_savefile)
