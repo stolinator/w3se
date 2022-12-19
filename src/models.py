@@ -41,12 +41,19 @@ class CharacterModel(QAbstractTableModel):
             result = result | Qt.ItemFlag.ItemIsEditable
         return result
 
-class GameSave:
+class Game:
 
-    def __init__(self, meta_data, xml):
-        self.meta_data = meta_data
-        self.__xml = xml
+    def __init__(self, filename):
+        self.filename = filename
+        self.load(filename)
         self.characters = [Character(pc, i) for i, pc in enumerate(xml('pc'))]
+
+    def load(self):
+        self.metadata, self.rawdata = load(self.filename)
+        self.__xml = parse(self.rawdata)
+
+    def save(self):
+        save(save_filename, self.meta_data, self.save_data)
 
     @property
     def save_data(self):
@@ -104,7 +111,6 @@ class Character:
     @property
     def perks(self):
         return PerkModel(xml=self.__xml('perks')[0])
-
 
     def __getattr__(self, key):
         """

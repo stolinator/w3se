@@ -4,8 +4,7 @@ from PyQt6.QtWidgets import (QApplication, QWidget, QMainWindow, QTabWidget,
     QTableView, QMessageBox, QListView, QLineEdit)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap, QFont, QAction
-from models import CharacterModel, GameSave, ItemModel, PerkModel
-from utility import load, save, parse
+from models import CharacterModel, Game, ItemModel, PerkModel
 
 
 class MainWindow(QMainWindow):
@@ -19,7 +18,7 @@ class MainWindow(QMainWindow):
         self.show()
 
     def initUI(self):
-        self.setGeometry(200, 100, 600, 480)
+        self.setGeometry(200, 100, 720, 480)
         self.setWindowTitle('Wasteland 3 Save Editor')
 
     def setUpWindow(self):
@@ -73,6 +72,12 @@ class MainWindow(QMainWindow):
             hbox.addLayout(hbox_vbox)
             hbox_vbox.addWidget(QLabel(f"Edit {name}'s Perks"))
             hbox_vbox.addWidget(perklist)
+            addperks = QPushButton('add perks')
+            removeperks = QPushButton('remove perks')
+            perk_btns_box = QHBoxLayout()
+            perk_btns_box.addWidget(addperks)
+            perk_btns_box.addWidget(removeperks)
+            hbox_vbox.addLayout(perk_btns_box)
             character_page.setLayout(vbox)
             tabs.addTab(character_page, name)
         character_edit_vbox.addWidget(tabs)
@@ -108,9 +113,7 @@ class MainWindow(QMainWindow):
         filename, ok = QFileDialog.getOpenFileName(self, 'Open Save Game File',
             os.curdir, 'Game Save Files (*.xml)')
         if ok:
-            meta, save = load(filename)
-            self.game = GameSave(meta, parse(save))
-            self.filename = filename
+            self.game = Game(filename)
             self.save_changes_act.setDisabled(False)
             self.setUpWindow()
 
@@ -126,7 +129,7 @@ class MainWindow(QMainWindow):
             os.path.split(self.filename)[1], 'Save Game Files (*.xml)')
         if ok:
             print(save_filename)
-            save(save_filename, self.game.meta_data, self.game.save_data)
+            self.game.save(save_filename)
             #save(save_filename, self.meta_data, str(self.xml.save))
 
 

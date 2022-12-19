@@ -6,7 +6,7 @@ sys.path.append(cwd)
 
 from bs4 import BeautifulSoup as soup
 from src.utility import load, save, parse
-from src.models import Character, GameSave
+from src.models import Character, GameSave, CharacterModel, ItemModel, PerkModel
 from collections import namedtuple
 
 filename = 'test_save.xml'
@@ -90,12 +90,19 @@ def test_manipulation_persists(gamesave):
     for skillId in '10', '220', '400', '320':
         assert skillId in [skill.skillId.string for skill in yuri_xml('skills')[0]('skill')]
 
-@pytest.fixture
-def index():
-    return namedtuple('index', ['row', 'column'])
+def test_perks():
+    yuri, spence = parse(load('test_save.xml')[1])('pc')
+    #yuri = gamesave.characters[0]
+    #assert 'BCK_Yuri' in [p.string for p in yuri.perks('perkname')]
+    assert 'BCK_Yuri' in [p.string for p in yuri('perkname')]
+    assert 'BCK_Spence' in [p.string for p in spence('perkname')]
 
-def test_indexing(index):
-    #row, column = index
-    print(index)
-    #assert row == 0
-    #assert column == 0
+
+def test_perks_removal(gamesave):
+    yuri = gamesave.characters[0]
+
+# test adding new perks and saving
+
+# test inventory
+# test removing from inventory
+# test adding new items and saving (check qty after re-load)
