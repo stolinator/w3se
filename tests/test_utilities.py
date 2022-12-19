@@ -6,7 +6,7 @@ sys.path.append(cwd)
 
 from bs4 import BeautifulSoup as soup
 from src.utility import load, save, parse
-from src.models import Character, GameSave
+from src.models import Character
 
 filename = 'test_save.xml'
 

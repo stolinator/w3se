@@ -1,5 +1,7 @@
-from PyQt6.QtCore import Qt, QAbstractTableModel
+from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex, QAbstractListModel
 from bs4 import BeautifulSoup as soup
+from uuid import uuid4
+from utility import load, save, parse
 
 class CharacterModel(QAbstractTableModel):
 
@@ -30,11 +32,7 @@ class CharacterModel(QAbstractTableModel):
 
         if role == Qt.ItemDataRole.DisplayRole:
             trait = Character.fields[index.row()]
-            #print(f'accessing trait {trait}')
-            print(f'field: {trait}, value: {self.character[trait]}')
             return str(self.character[trait])
-            #trait = self.character.fields[index.row()]
-            #return str(self.character.fetch_skill(trait) if isSkill(trait) else self.character.fetch(trait))
         return None
 
     def flags(self, index):
@@ -44,12 +42,19 @@ class CharacterModel(QAbstractTableModel):
             result = result | Qt.ItemFlag.ItemIsEditable
         return result
 
-class GameSave:
+class Game:
 
-    def __init__(self, meta_data, xml):
-        self.meta_data = meta_data
-        self.__xml = xml
-        self.characters = [Character(pc, i) for i, pc in enumerate(xml('pc'))]
+    def __init__(self, filename):
+        self.filename = filename
+        self.load()
+
+    def load(self):
+        self.metadata, self.rawdata = load(self.filename)
+        self.__xml = parse(self.rawdata)
+        self.characters = [Character(pc, i) for i, pc in enumerate(self.__xml('pc'))]
+
+    def save(self, save_filename):
+        save(save_filename, self.metadata, self.save_data)
 
     @property
     def save_data(self):
@@ -63,9 +68,12 @@ class GameSave:
     def money(self, value):
         self.__xml('money')[0].string = str(value)
 
+    def set_money(self, value):
+        self.__xml('money')[0].string = str(value)
+
     @property
     def inventory(self):
-        return self.__xml('hostInventory')
+        return self.__xml.save.hostInventory
 
     """
     @property
@@ -79,7 +87,7 @@ class Character:
         'displayName', 'coordination',
         'luck', 'awareness', 'strength', 'speed', 'intelligence',
         'charisma', 'availableAttributePoints', 'availableSkillPoints',
-        'automatic_weapons', 'big_guns', 'brawling', 'small_arms',
+        'perkPoints', 'automatic_weapons', 'big_guns', 'brawling', 'small_arms',
         'sniper_rifles', 'animal_whisperer', 'bartering', 'nerd_stuff',
         'explosives', 'first_aid', 'leadership', 'lockpicking', 'mechanics',
         'survival', 'toaster_repair', 'weapon_modding', 'hard_ass', 'kiss_ass',
@@ -101,6 +109,9 @@ class Character:
         self.__xml = xml # selects <pc> subtree from overall <save>
         self.i = i
 
+    @property
+    def perks(self):
+        return PerkModel(xml=self.__xml('perks')[0])
 
     def __getattr__(self, key):
         """
@@ -128,11 +139,9 @@ class Character:
             if key in self.fields:
                 if self.isSkill(key):
                     adjacent = self.__xml('skillId', string=self.skills[key])
-                    #print(f'showing dict for {key}: {self[key]}')
                     if len(adjacent):
                         adjacent[0].parent('level')[0].string = value
                     else:
-                        print('generating new skill!')
                         self.new_skill(key, value)
 
                 else:
@@ -151,9 +160,121 @@ class Character:
         #return xml('skill')[0]
 
 
+class PerkModel(QAbstractListModel):
+
+    #fields = ['templateName', 'slot', 'ammoLoaded', 'uid', 'isLockedForMerchant',
+        #'merchantBarterLevelRequirement', 'quantity']
+
+    def __init__(self, parent=None, xml=None):
+        super().__init__(parent)
+        self.xml = xml
+
+    def headerData(self, section, role):
+        if role == Qt.ItemDataRole.DisplayRole:
+            return 'perkname'
+        return None
+
+    def rowCount(self, parent=None):
+        return len(self.xml('perk')) or 0
+
+    def data(self, index, role=Qt.ItemDataRole.DisplayRole):
+
+        #print(f'row: {index.row()}')
+        #print(self.xml)
+        if role == Qt.ItemDataRole.DisplayRole:
+            #[print(f"perkname: {p.perkname.string}") for p in self.xml('perk')]
+            return str(self.xml('perk')[index.row()].string)
+        return None
+
+    """
+    def setData(self, index, value, role=Qt.ItemDataRole.EditRole):
+        if (role == Qt.ItemDataRole.EditRole) and (value != ''):
+            item = self.xml('item')[index.row()]
+            field = self.fields[index.column()]
+            item(field)[0].string = str(value)
+            return True
+        return False
+    """
+
+    def flags(self, row):
+        result = Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsEditable
+        return result
+
+    """
+    def removeRow(self, row, parent=None):
+        return self.removeRows(row, 1, parent)
+
+    def removeRows(self, row, count, parent):
+        self.beginRemoveRows(parent, row, row + count)
+        for i in range(row, row + count):
+            item = self.xml('item')[row]
+            item.decompose()
+        self.endRemoveRows() # removing all items creates a bug
+        return True
+    """
+
+
 """
 editable_traits = [
-    'displayName', 'coordination', 'luck', 'awareness', 'strength', 'speed',
+    'displayName', 'coordination', 'luck', 'awareness', 'strength', 'speed', perkPoints
     'intelligence', 'charisma', 'availableAttributePoints', 'availableSkillPoints',
 ]
 """
+
+def new_item(templateName, quantity=1):
+    pass
+
+class ItemModel(QAbstractTableModel):
+
+    fields = ['templateName', 'slot', 'ammoLoaded', 'uid', 'isLockedForMerchant',
+        'merchantBarterLevelRequirement', 'quantity']
+
+    def __init__(self, parent=None, xml=None):
+        super().__init__(parent)
+        self.xml = xml
+
+    def headerData(self, section, orientation, role):
+        if role == Qt.ItemDataRole.DisplayRole:
+            if str(orientation) == 'Orientation.Horizontal':
+                return self.fields[section]
+            elif str(orientation) == 'Orientation.Vertical':
+                return self.xml('item')[section].templateName.string
+        return None
+
+    def rowCount(self, parent=None):
+        return len(self.xml('item')) or 0
+
+    def columnCount(self, parent=None):
+        return len(self.fields)
+
+    def data(self, index, role=Qt.ItemDataRole.DisplayRole):
+
+        if role == Qt.ItemDataRole.DisplayRole:
+            item = self.xml('item')[index.row()]
+            field = self.fields[index.column()]
+            return str(item(field)[0].string)
+            return 'unimplemented'
+        return None
+
+    def setData(self, index, value, role=Qt.ItemDataRole.EditRole):
+        if (role == Qt.ItemDataRole.EditRole) and (value != ''):
+            item = self.xml('item')[index.row()]
+            field = self.fields[index.column()]
+            item(field)[0].string = str(value)
+            return True
+        return False
+
+    def flags(self, index):
+        result = Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsEditable
+        return result
+
+    def removeRow(self, row, parent=None):
+        return self.removeRows(row, 1, parent)
+
+    def removeRows(self, row, count, parent):
+        self.beginRemoveRows(parent, row, row + count)
+        for i in range(row, row + count):
+            item = self.xml('item')[row]
+            item.decompose()
+        self.endRemoveRows() # removing all items creates a bug
+        return True

@@ -1,11 +1,10 @@
 import sys, os, shutil
 from PyQt6.QtWidgets import (QApplication, QWidget, QMainWindow, QTabWidget,
     QLabel, QPushButton, QMenuBar, QVBoxLayout, QHBoxLayout, QFileDialog,
-    QTableView, QMessageBox)
+    QTableView, QMessageBox, QListView, QLineEdit)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap, QFont, QAction
-from models import CharacterModel, GameSave
-from utility import load, save, parse
+from models import CharacterModel, Game, ItemModel, PerkModel
 
 
 class MainWindow(QMainWindow):
@@ -19,30 +18,73 @@ class MainWindow(QMainWindow):
         self.show()
 
     def initUI(self):
-        self.setGeometry(200, 100, 600, 480)
+        self.setGeometry(200, 100, 720, 480)
         self.setWindowTitle('Wasteland 3 Save Editor')
 
     def setUpWindow(self):
-        main_widget = QWidget()
-        main_vbox = QVBoxLayout()
+        main_widget = QTabWidget()
+        character_edit = QWidget()
+        globals_edit = QWidget()
+        globals_vlayout = QVBoxLayout()
+        globals_hlayout1 = QHBoxLayout()
+        globals_edit.setLayout(globals_vlayout)
+        globals_vlayout.addWidget(QLabel('Edit global values'))
+        globals_vlayout.addLayout(globals_hlayout1)
+        globals_hlayout1.addWidget(QLabel('Money'))
+        money_edit = QLineEdit()
+        money_edit.textEdited.connect(lambda: self.game.set_money(money_edit.text()))
+        globals_hlayout1.addWidget(QLabel('Money'))
+        globals_hlayout1.addWidget(money_edit)
+        inventory_edit = QWidget()
+        inventory_edit_vbox = QVBoxLayout()
+        inventory_edit.setLayout(inventory_edit_vbox)
+        inventory_items = QTableView()
+        inventory_model = ItemModel(xml = self.game.inventory)
+        inventory_items.setModel(inventory_model)
+        inventory_edit_vbox.addWidget(inventory_items)
+        inv_hbox_btns = QHBoxLayout()
+        add_item_btn = QPushButton('add item')
+        remove_item_btn = QPushButton('remove item')
+        remove_item_btn.clicked.connect(lambda: [inventory_model.removeRow(i.row(), i) for i in inventory_items.selectedIndexes()])
+        inv_hbox_btns.addWidget(add_item_btn)
+        inv_hbox_btns.addWidget(remove_item_btn)
+        inventory_edit_vbox.addLayout(inv_hbox_btns)
+        character_edit_vbox = QVBoxLayout()
         tabs = QTabWidget()
         # loop through characters, create edit page with layout
         for character in self.game.characters:
             model = CharacterModel(character=character)
-            table = QTableView()
-            table.setModel(model)
-            table.horizontalHeader().hide()
+            skilltable = QTableView()
+            skilltable.setModel(model)
+            skilltable.horizontalHeader().hide()
             #name = character.displayName.string if character.displayName else 'None'
-            print(character)
+            #print(character)
+            perklist = QListView()
+            perklist.setModel(character.perks)
             name = character.displayName
             character_page = QWidget()
             vbox = QVBoxLayout()
-            vbox.addWidget(table)
+            hbox = QHBoxLayout()
+            hbox_vbox = QVBoxLayout()
+            #vbox.addWidget(table)
+            vbox.addLayout(hbox)
+            hbox.addWidget(skilltable)
+            hbox.addLayout(hbox_vbox)
+            hbox_vbox.addWidget(QLabel(f"Edit {name}'s Perks"))
+            hbox_vbox.addWidget(perklist)
+            addperks = QPushButton('add perks')
+            removeperks = QPushButton('remove perks')
+            perk_btns_box = QHBoxLayout()
+            perk_btns_box.addWidget(addperks)
+            perk_btns_box.addWidget(removeperks)
+            hbox_vbox.addLayout(perk_btns_box)
             character_page.setLayout(vbox)
             tabs.addTab(character_page, name)
-        main_vbox.addWidget(tabs)
-        main_vbox.addWidget(QLabel('edit globals here'))
-        main_widget.setLayout(main_vbox)
+        character_edit_vbox.addWidget(tabs)
+        character_edit.setLayout(character_edit_vbox)
+        main_widget.addTab(tabs, 'Edit Characters')
+        main_widget.addTab(inventory_edit, 'Edit Inventory')
+        main_widget.addTab(globals_edit, 'Edit Global Values')
         self.setCentralWidget(main_widget)
 
     def createActions(self):
@@ -71,9 +113,7 @@ class MainWindow(QMainWindow):
         filename, ok = QFileDialog.getOpenFileName(self, 'Open Save Game File',
             os.curdir, 'Game Save Files (*.xml)')
         if ok:
-            meta, save = load(filename)
-            self.game = GameSave(meta, parse(save))
-            self.filename = filename
+            self.game = Game(filename)
             self.save_changes_act.setDisabled(False)
             self.setUpWindow()
 
@@ -89,7 +129,7 @@ class MainWindow(QMainWindow):
             os.path.split(self.filename)[1], 'Save Game Files (*.xml)')
         if ok:
             print(save_filename)
-            save(save_filename, self.game.meta_data, self.game.save_data)
+            self.game.save(save_filename)
             #save(save_filename, self.meta_data, str(self.xml.save))
 
 
