@@ -3,6 +3,7 @@ import pytest
 import os, sys
 cwd = os.path.abspath(os.curdir)
 sys.path.append(cwd)
+sys.path.append(os.path.join(cwd, 'src'))
 
 from bs4 import BeautifulSoup as soup
 from src.utility import load, save, parse
