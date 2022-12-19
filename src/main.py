@@ -1,10 +1,11 @@
 import sys, os, shutil
 from PyQt6.QtWidgets import (QApplication, QWidget, QMainWindow, QTabWidget,
     QLabel, QPushButton, QMenuBar, QVBoxLayout, QHBoxLayout, QFileDialog,
-    QTableView, QMessageBox, QListView, QLineEdit)
+    QTableView, QMessageBox, QListView, QLineEdit, QListWidget)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap, QFont, QAction
 from models import CharacterModel, Game, ItemModel, PerkModel
+#from views import PerkView, PerkWidget
 
 
 class MainWindow(QMainWindow):
@@ -39,11 +40,15 @@ class MainWindow(QMainWindow):
         inventory_edit_vbox = QVBoxLayout()
         inventory_edit.setLayout(inventory_edit_vbox)
         inventory_items = QTableView()
+        inventory_items.setAcceptDrops(True)
+        inventory_items.showDropIndicator()
         inventory_model = ItemModel(xml = self.game.inventory)
+        #inventory_model.rowsAboutToBeRemoved.connect(lambda parent, first, last: inventory_items.removeRows(first, last))
         inventory_items.setModel(inventory_model)
         inventory_edit_vbox.addWidget(inventory_items)
         inv_hbox_btns = QHBoxLayout()
-        add_item_btn = QPushButton('add item')
+        add_item_btn = QPushButton('show all items')
+        add_item_btn.clicked.connect(self.showItems)
         remove_item_btn = QPushButton('remove item')
         remove_item_btn.clicked.connect(lambda: [inventory_model.removeRow(i.row(), i) for i in inventory_items.selectedIndexes()])
         inv_hbox_btns.addWidget(add_item_btn)
@@ -60,6 +65,9 @@ class MainWindow(QMainWindow):
             #name = character.displayName.string if character.displayName else 'None'
             #print(character)
             perklist = QListView()
+            #perklist = PerkView()
+            perklist.setAcceptDrops(True)
+            perklist.showDropIndicator()
             perklist.setModel(character.perks)
             name = character.displayName
             character_page = QWidget()
@@ -72,11 +80,12 @@ class MainWindow(QMainWindow):
             hbox.addLayout(hbox_vbox)
             hbox_vbox.addWidget(QLabel(f"Edit {name}'s Perks"))
             hbox_vbox.addWidget(perklist)
-            addperks = QPushButton('add perks')
-            removeperks = QPushButton('remove perks')
+            addperks = QPushButton('show all perks')
+            addperks.clicked.connect(self.showPerks)
+            #removeperks = QPushButton('remove perks')
             perk_btns_box = QHBoxLayout()
             perk_btns_box.addWidget(addperks)
-            perk_btns_box.addWidget(removeperks)
+            #perk_btns_box.addWidget(removeperks)
             hbox_vbox.addLayout(perk_btns_box)
             character_page.setLayout(vbox)
             tabs.addTab(character_page, name)
@@ -117,6 +126,40 @@ class MainWindow(QMainWindow):
             self.save_changes_act.setDisabled(False)
             self.setUpWindow()
 
+    def showPerks(self):
+        self.perkWindow = QWidget()
+        self.perkWindow.setWindowTitle('all perks')
+        self.perkWindow.setGeometry(200, 100, 600, 480)
+        vbox = QVBoxLayout()
+        self.perkWindow.setLayout(vbox)
+        vbox.addWidget(QLabel('drag perks to your character to add'))
+        perklist = QListWidget()
+        #perklist = PerkWidget()
+        perklist.setDragEnabled(True)
+        with open('export_perks.txt') as f:
+            data = [s.strip('\n') for s in f.readlines()]
+            print(data)
+            perklist.addItems(data)
+        vbox.addWidget(perklist)
+        self.perkWindow.show()
+
+    def showItems(self):
+        self.itemWindow = QWidget()
+        self.itemWindow.setWindowTitle('all items')
+        self.itemWindow.setGeometry(200, 100, 600, 480)
+        vbox = QVBoxLayout()
+        self.itemWindow.setLayout(vbox)
+        vbox.addWidget(QLabel('drag items to your inventory to add'))
+        itemlist = QListWidget()
+        #perklist = PerkWidget()
+        itemlist.setDragEnabled(True)
+        with open('export_items.txt') as f:
+            data = [s.strip('\n') for s in f.readlines()]
+            print(data)
+            itemlist.addItems(data)
+        vbox.addWidget(itemlist)
+        self.itemWindow.show()
+
     def saveFile(self):
         backup = QMessageBox.information(self, 'Backing up original..',
             'Do you want to back up the original file (it\'s recommended!)',
@@ -124,9 +167,9 @@ class MainWindow(QMainWindow):
             QMessageBox.StandardButton.Yes
         )
         if backup:
-            shutil.copyfile(self.filename, f'{self.filename}.backup')
+            shutil.copyfile(self.game.filename, f'{self.game.filename}.backup')
         save_filename, ok = QFileDialog.getSaveFileName(self, 'Save File',
-            os.path.split(self.filename)[1], 'Save Game Files (*.xml)')
+            os.path.split(self.game.filename)[1], 'Save Game Files (*.xml)')
         if ok:
             print(save_filename)
             self.game.save(save_filename)
