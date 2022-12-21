@@ -127,6 +127,8 @@ class MainWindow(QMainWindow):
             self.setUpWindow()
 
     def showPerks(self):
+        if hasattr(self, 'itemWindow'):
+            self.itemWindow.close()
         self.perkWindow = QWidget()
         self.perkWindow.setWindowTitle('all perks')
         self.perkWindow.setGeometry(200, 100, 600, 480)
@@ -144,6 +146,8 @@ class MainWindow(QMainWindow):
         self.perkWindow.show()
 
     def showItems(self):
+        if hasattr(self, 'perkWindow'):
+            self.perkWindow.close()
         self.itemWindow = QWidget()
         self.itemWindow.setWindowTitle('all items')
         self.itemWindow.setGeometry(200, 100, 600, 480)
