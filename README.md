@@ -12,7 +12,9 @@ Use the `File- > Load Save Game` dialog. Browse to your save game file, and edit
 
 - View party members and edit their stats
 - Attributes and Attribute points
-- Add items to your party's inventory
+- Add/Edit/Remove items in the party inventory
+- Add perks to each character
+- Edit money quantity
 
 
 ## Installation
@@ -29,6 +31,12 @@ Use the `File- > Load Save Game` dialog. Browse to your save game file, and edit
 
 ## Development Notes
 
+For anyone running the `bash` shell, you can use the included `project.sh`
+to automate development functions. Currently, you can `run`, `test`, or`lint`
+files.
+
+Or, just read along to run these steps manually.
+
 ### Running Tests
 
 After installing dependencies, just run the `pytest` command.
@@ -37,12 +45,14 @@ After installing dependencies, just run the `pytest` command.
 
 Run `pylama src` to view any linter conflicts.
 
-#### Planned Functionality
+## Planned Functionality
 
 Currently rewriting the model/view between PyQt and BeautifulSoup, which should
 enable the following actions:
 
-- Edit money
-- Edit perks
-- Add/Edit items in party inventory
-- Improve usability (refactor layout), write better logic for File Dialog
+- Improve usability (refactor layout)
+- A more efficient way to find the Wasteland 3 save files on a given system
+- Sort, searching, and filtering for the perk and item menus
+- Removing perks
+- A more efficient inventory browser (large inventories cause a noticeable app slow-down)
+- Include pre-built releases for anyone looking to test out the project!

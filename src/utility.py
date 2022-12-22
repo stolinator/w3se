@@ -42,7 +42,7 @@ def save(filename, meta_data, save_data):
     with open(filename, 'wb+') as f:
         f.write(meta_data.encode('utf-8'))
         f.write(compressed_data)
-    print(f'Data Size: {data_size}, SaveDataSize: {save_data_size}')
+    #print(f'Data Size: {data_size}, SaveDataSize: {save_data_size}')
 
 def update_meta_data(meta_data, data_size, save_data_size):
     # find/update DataSize and SaveDataSize 
