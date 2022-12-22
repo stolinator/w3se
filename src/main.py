@@ -22,50 +22,52 @@ class MainWindow(QMainWindow):
         self.setGeometry(200, 100, 720, 480)
         self.setWindowTitle('Wasteland 3 Save Editor')
 
-    def setUpWindow(self):
-        main_widget = QTabWidget()
-        character_edit = QWidget()
-        globals_edit = QWidget()
-        globals_vlayout = QVBoxLayout()
-        globals_hlayout1 = QHBoxLayout()
-        globals_edit.setLayout(globals_vlayout)
-        globals_vlayout.addWidget(QLabel('Edit global values'))
-        globals_vlayout.addLayout(globals_hlayout1)
-        globals_hlayout1.addWidget(QLabel('Money'))
+    def createGlobalEditor(self):
+        editor = QWidget()
+        vbox = QVBoxLayout()
+        hbox = QHBoxLayout()
+        editor.setLayout(vbox)
+        vbox.addWidget(QLabel('Edit global values'))
+        vbox.addLayout(hbox)
+        hbox.addWidget(QLabel('Money'))
         money_edit = QLineEdit()
         money_edit.textEdited.connect(lambda: self.game.set_money(money_edit.text()))
-        globals_hlayout1.addWidget(QLabel('Money'))
-        globals_hlayout1.addWidget(money_edit)
-        inventory_edit = QWidget()
-        inventory_edit_vbox = QVBoxLayout()
-        inventory_edit.setLayout(inventory_edit_vbox)
-        inventory_items = QTableView()
-        inventory_items.setAcceptDrops(True)
-        inventory_items.showDropIndicator()
-        inventory_model = ItemModel(xml = self.game.inventory)
-        #inventory_model.rowsAboutToBeRemoved.connect(lambda parent, first, last: inventory_items.removeRows(first, last))
-        inventory_items.setModel(inventory_model)
-        inventory_edit_vbox.addWidget(inventory_items)
-        inv_hbox_btns = QHBoxLayout()
-        add_item_btn = QPushButton('show all items')
-        add_item_btn.clicked.connect(self.showItems)
-        remove_item_btn = QPushButton('remove item')
-        remove_item_btn.clicked.connect(lambda: [inventory_model.removeRow(i.row(), i) for i in inventory_items.selectedIndexes()])
-        inv_hbox_btns.addWidget(add_item_btn)
-        inv_hbox_btns.addWidget(remove_item_btn)
-        inventory_edit_vbox.addLayout(inv_hbox_btns)
-        character_edit_vbox = QVBoxLayout()
+        hbox.addWidget(QLabel('Money'))
+        hbox.addWidget(money_edit)
+        return editor
+
+    def createInventoryEditor(self):
+        editor = QWidget()
+        vbox = QVBoxLayout()
+        editor.setLayout(vbox)
+        item_view = QTableView()
+        item_view.setAcceptDrops(True)
+        item_view.showDropIndicator()
+        model = ItemModel(xml = self.game.inventory)
+        item_view.setModel(model)
+        vbox.addWidget(item_view)
+        hbox = QHBoxLayout()
+        btn_add = QPushButton('show all items')
+        btn_add.clicked.connect(self.showItems)
+        btn_remove = QPushButton('remove item')
+        btn_remove.clicked.connect(
+            lambda: [inventory_model.removeRow(i.row(), i) for i in inventory_items.selectedIndexes()]
+        )
+        hbox.addWidget(btn_add)
+        hbox.addWidget(btn_remove)
+        vbox.addLayout(hbox)
+        return editor
+
+    def createCharacterEditor(self):
+        editor = QWidget()
+        editor_vbox = QVBoxLayout()
         tabs = QTabWidget()
-        # loop through characters, create edit page with layout
         for character in self.game.characters:
             model = CharacterModel(character=character)
             skilltable = QTableView()
             skilltable.setModel(model)
             skilltable.horizontalHeader().hide()
-            #name = character.displayName.string if character.displayName else 'None'
-            #print(character)
             perklist = QListView()
-            #perklist = PerkView()
             perklist.setAcceptDrops(True)
             perklist.showDropIndicator()
             perklist.setModel(character.perks)
@@ -74,26 +76,31 @@ class MainWindow(QMainWindow):
             vbox = QVBoxLayout()
             hbox = QHBoxLayout()
             hbox_vbox = QVBoxLayout()
-            #vbox.addWidget(table)
             vbox.addLayout(hbox)
             hbox.addWidget(skilltable)
             hbox.addLayout(hbox_vbox)
             hbox_vbox.addWidget(QLabel(f"Edit {name}'s Perks"))
             hbox_vbox.addWidget(perklist)
-            addperks = QPushButton('show all perks')
-            addperks.clicked.connect(self.showPerks)
-            #removeperks = QPushButton('remove perks')
+            btn_show_perks = QPushButton('show all perks')
+            btn_show_perks.clicked.connect(self.showPerks)
             perk_btns_box = QHBoxLayout()
-            perk_btns_box.addWidget(addperks)
-            #perk_btns_box.addWidget(removeperks)
+            perk_btns_box.addWidget(btn_show_perks)
             hbox_vbox.addLayout(perk_btns_box)
             character_page.setLayout(vbox)
             tabs.addTab(character_page, name)
-        character_edit_vbox.addWidget(tabs)
-        character_edit.setLayout(character_edit_vbox)
-        main_widget.addTab(tabs, 'Edit Characters')
-        main_widget.addTab(inventory_edit, 'Edit Inventory')
-        main_widget.addTab(globals_edit, 'Edit Global Values')
+        editor_vbox.addWidget(tabs)
+        editor.setLayout(editor_vbox)
+        return editor
+
+    def setUpWindow(self):
+        main_widget = QTabWidget()
+        tab_functions = {
+            'Edit Characters': self.createCharacterEditor,
+            'Edit Inventory': self.createInventoryEditor,
+            'Edit Global Values': self.createGlobalEditor
+        }
+        for label, func in tab_functions.items():
+            main_widget.addTab(func(), label)
         self.setCentralWidget(main_widget)
 
     def createActions(self):
