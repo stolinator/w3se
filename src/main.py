@@ -50,7 +50,7 @@ class MainWindow(QMainWindow):
         btn_add.clicked.connect(self.showItems)
         btn_remove = QPushButton('remove item')
         btn_remove.clicked.connect(
-            lambda: [inventory_model.removeRow(i.row(), i) for i in inventory_items.selectedIndexes()]
+            lambda: [model.removeRow(i.row(), i) for i in item_view.selectedIndexes()]
         )
         hbox.addWidget(btn_add)
         hbox.addWidget(btn_remove)
@@ -145,7 +145,6 @@ class MainWindow(QMainWindow):
         perklist.setDragEnabled(True)
         with open('export_perks.txt') as f:
             data = [s.strip('\n') for s in f.readlines()]
-            print(data)
             perklist.addItems(data)
         vbox.addWidget(perklist)
         self.perkWindow.show()
@@ -163,7 +162,6 @@ class MainWindow(QMainWindow):
         itemlist.setDragEnabled(True)
         with open('export_items.txt') as f:
             data = [s.strip('\n') for s in f.readlines()]
-            print(data)
             itemlist.addItems(data)
         vbox.addWidget(itemlist)
         self.itemWindow.show()

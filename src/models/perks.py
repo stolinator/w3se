@@ -47,7 +47,6 @@ class PerkModel(QAbstractListModel):
             ba = data.data('application/x-qabstractitemmodeldatalist')
             data_items = decode_data(ba)
             text = data_items[0][Qt.ItemDataRole.DisplayRole]
-            print(text.value())
             self.insertRows(self.rowCount(), 1, None, text.value())
         return True
 
