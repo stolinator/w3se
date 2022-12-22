@@ -1,6 +1,6 @@
 from PyQt6.QtCore import (Qt, QAbstractTableModel)
 from bs4 import BeautifulSoup as soup
-from models.perks import PerkModel
+from models import PerkModel
 
 class CharacterModel(QAbstractTableModel):
 

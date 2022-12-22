@@ -5,10 +5,7 @@ from PyQt6.QtWidgets import (
     QFileDialog, QTableView, QMessageBox, QListView, QLineEdit,
     QListWidget)
 from PyQt6.QtGui import QPixmap, QFont, QAction
-from models.character import CharacterModel
-from models.game import Game
-from models.items import ItemModel
-from models.perks import PerkModel
+from models import CharacterModel, Game, ItemModel, PerkModel
 
 
 class MainWindow(QMainWindow):

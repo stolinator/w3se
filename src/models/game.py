@@ -1,6 +1,5 @@
 from utility import load, save, parse
-from models.character import Character
-from models.globals import Globals
+from models import Character, Globals
 
 
 class Game:
