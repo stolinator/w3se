@@ -1,11 +1,14 @@
 import sys, os, shutil
-from PyQt6.QtWidgets import (QApplication, QWidget, QMainWindow, QTabWidget,
-    QLabel, QPushButton, QMenuBar, QVBoxLayout, QHBoxLayout, QFileDialog,
-    QTableView, QMessageBox, QListView, QLineEdit, QListWidget)
-from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import (
+    QApplication, QWidget, QMainWindow, QTabWidget,
+    QLabel, QPushButton, QMenuBar, QVBoxLayout, QHBoxLayout,
+    QFileDialog, QTableView, QMessageBox, QListView, QLineEdit,
+    QListWidget)
 from PyQt6.QtGui import QPixmap, QFont, QAction
-from models import CharacterModel, Game, ItemModel, PerkModel
-#from views import PerkView, PerkWidget
+from models.character import CharacterModel
+from models.game import Game
+from models.items import ItemModel
+from models.perks import PerkModel
 
 
 class MainWindow(QMainWindow):
@@ -13,7 +16,6 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.initUI()
-        #self.setUpWindow()
         self.createActions()
         self.createMenu()
         self.show()
@@ -25,15 +27,12 @@ class MainWindow(QMainWindow):
     def createGlobalEditor(self):
         editor = QWidget()
         vbox = QVBoxLayout()
-        hbox = QHBoxLayout()
         editor.setLayout(vbox)
         vbox.addWidget(QLabel('Edit global values'))
-        vbox.addLayout(hbox)
-        hbox.addWidget(QLabel('Money'))
-        money_edit = QLineEdit()
-        money_edit.textEdited.connect(lambda: self.game.set_money(money_edit.text()))
-        hbox.addWidget(QLabel('Money'))
-        hbox.addWidget(money_edit)
+        value_table = QTableView()
+        value_table.horizontalHeader().hide()
+        value_table.setModel(self.game.globals)
+        vbox.addWidget(value_table)
         return editor
 
     def createInventoryEditor(self):
@@ -143,7 +142,6 @@ class MainWindow(QMainWindow):
         self.perkWindow.setLayout(vbox)
         vbox.addWidget(QLabel('drag perks to your character to add'))
         perklist = QListWidget()
-        #perklist = PerkWidget()
         perklist.setDragEnabled(True)
         with open('export_perks.txt') as f:
             data = [s.strip('\n') for s in f.readlines()]
@@ -162,7 +160,6 @@ class MainWindow(QMainWindow):
         self.itemWindow.setLayout(vbox)
         vbox.addWidget(QLabel('drag items to your inventory to add'))
         itemlist = QListWidget()
-        #perklist = PerkWidget()
         itemlist.setDragEnabled(True)
         with open('export_items.txt') as f:
             data = [s.strip('\n') for s in f.readlines()]
@@ -184,7 +181,6 @@ class MainWindow(QMainWindow):
         if ok:
             print(save_filename)
             self.game.save(save_filename)
-            #save(save_filename, self.meta_data, str(self.xml.save))
 
 
 if __name__ == '__main__':
