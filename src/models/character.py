@@ -1,6 +1,6 @@
 from PyQt6.QtCore import (Qt, QAbstractTableModel)
 from bs4 import BeautifulSoup as soup
-from models.perks import PerkModel
+from models import PerkModel
 
 class CharacterModel(QAbstractTableModel):
 
@@ -62,7 +62,12 @@ class Character:
         'sneaky_shit': '550', 'armor_modding': '560', 'brawling': '40'
     }
 
-    # add perks here
+    def __str__(self):
+        return f"<Character[{self.i}] '{self.displayName}'>"
+
+    def __repr__(self):
+        """Should return args that could be used to recreate object"""
+        return f"<Character[{self.i}] '{self.displayName}'>"
 
     def __init__(self, xml, i):
         self.__xml = xml # selects <pc> subtree from overall <save>

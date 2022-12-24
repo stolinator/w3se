@@ -1,9 +1,31 @@
 from utility import load, save, parse
-from models.character import Character
-from models.globals import Globals
+from models import Character, Globals
 
 
 class Game:
+    """Class representing a save game file. It manages interactions with the
+    file system and maninpulating character, inventory, and save data.
+    `filename` is a string containing the absolute path to a save file.
+
+    >>> filename = '/path/to/my/save.xml'
+    >>> game = Game(filename)
+    >>> print(game)
+    <Game savefile: /path/to/my/save>
+    
+    select a character
+    >>> pc = game.characters[0]
+
+    save any changes made to characters, inventory, or globals
+    >>> filename = '/path/to/my/new_save.xml'
+    >>> game.save(filename)
+    
+    """
+
+    def __str__(self):
+        return f"<Game savefile: '{self.filename}'>"
+
+    def __repr__(self):
+        return f"Game({self.filename})"
 
     def __init__(self, filename):
         self.filename = filename

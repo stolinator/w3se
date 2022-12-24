@@ -1,8 +1,5 @@
-from PyQt6.QtCore import (Qt, QAbstractTableModel, QModelIndex, QAbstractListModel)
-    #)#, QMimeData, QByteArray, QDataStream)
+from PyQt6.QtCore import Qt, QModelIndex, QAbstractListModel
 from bs4 import BeautifulSoup as soup
-from uuid import uuid4
-from utility import load, save, parse
 from PyQt6.QtCore import (QDataStream, QIODevice, QVariant)
 
 
