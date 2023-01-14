@@ -5,10 +5,7 @@ from PyQt6.QtWidgets import (
     QFileDialog, QTableView, QMessageBox, QListView, QLineEdit,
     QListWidget)
 from PyQt6.QtGui import QPixmap, QFont, QAction
-from models.character import CharacterModel
-from models.game import Game
-from models.items import ItemModel
-from models.perks import PerkModel
+from models import CharacterModel, Game, ItemModel, PerkModel
 
 
 class MainWindow(QMainWindow):
@@ -167,15 +164,17 @@ class MainWindow(QMainWindow):
         self.itemWindow.show()
 
     def saveFile(self):
-        backup = QMessageBox.information(self, 'Backing up original..',
-            'Do you want to back up the original file (it\'s recommended!)',
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.Yes
-        )
-        if backup:
-            shutil.copyfile(self.game.filename, f'{self.game.filename}.backup')
         save_filename, ok = QFileDialog.getSaveFileName(self, 'Save File',
             os.path.split(self.game.filename)[1], 'Save Game Files (*.xml)')
+        if save_filename == self.game.filename:
+            backup = QMessageBox.information(self, 'Backing up original..',
+                'Do you want to back up the original file (it\'s recommended!)',
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.Yes
+            )
+            if backup:
+                shutil.copyfile(self.game.filename, f'{self.game.filename}.backup')
+
         if ok:
             print(save_filename)
             self.game.save(save_filename)
