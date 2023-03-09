@@ -17,6 +17,7 @@ class Globals(QAbstractTableModel):
     def __setitem__(self, key, value):
         self.table[key].string = value
 
+    """
     @property
     def money(self):
         return self.table['money'].string
@@ -24,6 +25,7 @@ class Globals(QAbstractTableModel):
     @money.setter
     def money(self, value):
         self.table['money'].string = str(value)
+    """
 
 
 
@@ -45,9 +47,9 @@ class Globals(QAbstractTableModel):
             return str(self.table[key].string)
 
     def setData(self, index, value, role):
-        if role == Qt.ItemDataRole.DisplayRole:
+        if (role == Qt.ItemDataRole.EditRole) and (value != ''):
             key = self.fields[index.row()]
-            self.table[key].string = value
+            self.table[key].string = str(value)
             return True
         return False
 
