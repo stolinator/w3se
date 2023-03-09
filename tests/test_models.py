@@ -19,20 +19,20 @@ def game():
 def test_game_data(game):
     assert len(game.characters) == 2
     #assert int(game.money) >= 0
-    assert int(game.globals.money) >= 0
+    assert int(game.globals['money']) >= 0
     assert game.characters[0].displayName == 'Yuri'
     assert len(game.metadata.split('\n')) == 14
     assert len(game.characters) == 2
 
 def test_game_data_manipulation(game):
-    money = game.globals.money
+    money = game.globals['money']
     new_value = str(int(money) + 10)
     assert int(money) >= 0
     assert int(new_value) > int(money)
     assert int(new_value) == int(money) + 10
-    game.globals.money = new_value
-    assert game.globals.money != money
-    assert game.globals.money == new_value
+    game.globals['money'] = new_value
+    assert game.globals['money'] != money
+    assert game.globals['money'] == new_value
 
 # test for Character class
 def test_character_load(game):
