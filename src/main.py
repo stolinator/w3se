@@ -43,11 +43,11 @@ class MainWindow(QMainWindow):
         item_view.setModel(model)
         vbox.addWidget(item_view)
         hbox = QHBoxLayout()
-        btn_add = QPushButton('show all items')
+        btn_add = QPushButton('Show all in-game items')
         btn_add.clicked.connect(self.showItems)
-        btn_remove = QPushButton('remove item')
+        btn_remove = QPushButton('Remove selected items')
         btn_remove.clicked.connect(
-            lambda: [model.removeRow(i.row(), i) for i in item_view.selectedIndexes()]
+            lambda: [model.removeRow(i.row(), i) for i in sorted(item_view.selectedIndexes(), reverse=True)]
         )
         hbox.addWidget(btn_add)
         hbox.addWidget(btn_remove)

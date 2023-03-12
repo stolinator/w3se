@@ -2,15 +2,19 @@
 
 source w3se/bin/activate
 
-if [ $# -eq 0 ]
-then
-  echo project --help
-  echo project [COMMAND]
+show_help() {
+  echo Usage: project [COMMAND]
+  echo ----- HELP -----
   echo Options:
   printf "\tlint: runs pylama src on project"
   printf "\n\ttest: runs pytest"
   printf "\n\trun: executes the main GUI\n"
   exit
+}
+
+if [ $# -eq 0 ]
+then
+  show_help
 fi
 
 
@@ -24,5 +28,5 @@ elif [ "$1" == "run" ]
 then
   python src/main.py
 else
-  echo "unknown command supplied. use --help to see options"
+  show_help
 fi

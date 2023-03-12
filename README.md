@@ -6,6 +6,8 @@ A save game editor for inXile Entertainment's Wasteland 3
 
 ## Usage
 
+After **Installing** (see below), run `python src/main.py` to launch.
+
 Use the `File- > Load Save Game` dialog. Browse to your save game file, and edit away!
 
 ## Features
@@ -20,10 +22,11 @@ Use the `File- > Load Save Game` dialog. Browse to your save game file, and edit
 ## Installation
 
 1. Clone the repository to your local system
-  - `git clone https://github.com/stolinaotr/w3se.git`
+  - `git clone https://github.com/stolinator/w3se.git`
 2. [Optional] set up a virtual environment
   - `cd` into the repository folder
   - `python3 -m venv w3se`
+  - `source w3se/bin/activate`
 3. Use `pip` to install dependencies
   - `pip install -r requirements.txt`
 4. Run `main.py`
@@ -31,11 +34,9 @@ Use the `File- > Load Save Game` dialog. Browse to your save game file, and edit
 
 ## Development Notes
 
-For anyone running the `bash` shell, you can use the included `project.sh`
+If your shell is `bash` compatible, `project.sh` will automate
 to automate development functions. Currently, you can `run`, `test`, or`lint`
 files.
-
-Or, just read along to run these steps manually.
 
 ### Running Tests
 
@@ -45,13 +46,12 @@ After installing dependencies, just run the `pytest` command.
 
 Run `pylama src` to view any linter conflicts.
 
-## Planned Functionality
+## Planned Updates
 
-Currently rewriting the model/view between PyQt and BeautifulSoup, which should
-enable the following actions:
-
-- Improve usability (refactor layout)
+- Improve usability
+    - The list views for adding/removing items and perks are cool, but need work.
 - A more efficient way to find the Wasteland 3 save files on a given system
+    - Should put common locations in the README
 - Sort, searching, and filtering for the perk and item menus
 - Removing perks
 - A more efficient inventory browser (large inventories cause a noticeable app slow-down)

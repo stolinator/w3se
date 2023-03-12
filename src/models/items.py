@@ -6,13 +6,11 @@ from PyQt6.QtCore import (QDataStream, QVariant)
 
 class ItemModel(QAbstractTableModel):
 
-    fields = ['templateName', 'slot', 'ammoLoaded', 'uid', 'isLockedForMerchant',
-        'merchantBarterLevelRequirement', 'quantity']
+    fields = ['templateName', 'quantity', 'uid']
 
     def __init__(self, parent=None, xml=None):
         super().__init__(parent)
         self.xml = xml
-        #self.rowsAboutToBeRemoved.connect
 
     def headerData(self, section, orientation, role):
         if role == Qt.ItemDataRole.DisplayRole:
@@ -58,7 +56,9 @@ class ItemModel(QAbstractTableModel):
 
     def removeRows(self, row, count, parent):
         self.beginRemoveRows(parent, row, row + count)
-        for i in range(row, row + count):
+        #for i in range(row, row + count):
+        for i in range(count):
+        #for i in range(row, row + count)[::-1]:
             item = self.xml('item')[row]
             item.decompose()
         self.endRemoveRows() # removing all items creates a bug
