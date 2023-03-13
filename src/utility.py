@@ -8,29 +8,33 @@ def load(filename: str) -> (str, soup):
         raw_data = f.readlines()
 
         # discover previous data size
-        tgt = next(i for i,s in enumerate(raw_data) if s.decode().startswith('Data'))
-        data_size = int(raw_data[tgt].strip().decode('utf-8').replace('DataSize:=', ''))
+        try:
+            tgt = next(i for i,s in enumerate(raw_data) if s.decode().startswith('Data'))
+            data_size = int(raw_data[tgt].strip().decode('utf-8').replace('DataSize:=', ''))
 
-        meta_data = ''
-        compressed_data = b''
+            meta_data = ''
+            compressed_data = b''
 
-        # discover beginning of compression and store meta data
-        compression_start = 0
-        for i, line in enumerate(raw_data):
-            try:
-                meta_data += line.decode('utf-8')
-            except UnicodeDecodeError:
-                compression_start = i
-                break
+            # discover beginning of compression and store meta data
+            compression_start = 0
+            for i, line in enumerate(raw_data):
+                try:
+                    meta_data += line.decode('utf-8')
+                except UnicodeDecodeError:
+                    compression_start = i
+                    break
 
-        # extract compressed data
-        for line in raw_data[compression_start:]:
-            compressed_data += line
+            # extract compressed data
+            for line in raw_data[compression_start:]:
+                compressed_data += line
 
-        # decompress
-        save_data = lzf.decompress(compressed_data, data_size).decode('utf-8')
+            # decompress
+            save_data = lzf.decompress(compressed_data, data_size).decode('utf-8')
 
-        return meta_data, save_data
+            return meta_data, save_data
+        except (StopIteration):
+            print(f'ERROR: Invalid file format')
+            return None, None
 
 def save(filename, meta_data, save_data):
 

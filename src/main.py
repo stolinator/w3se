@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import (
     QLabel, QPushButton, QMenuBar, QVBoxLayout, QHBoxLayout,
     QFileDialog, QTableView, QMessageBox, QListView, QLineEdit,
     QListWidget, QButtonGroup, QRadioButton, QHeaderView,
-    QAbstractItemView)
+    QAbstractItemView, QMessageBox)
 from PyQt6.QtGui import QPixmap, QFont, QAction
 from models import CharacterModel, Game, ItemModel, PerkModel
 
@@ -177,17 +177,28 @@ class MainWindow(QMainWindow):
         file_menu.addAction(self.quit_act)
 
     def loadFile(self, filename=None):
+        def parseFile(filename):
+            self.game = Game(filename)
+            if (self.game.metadata is None):
+                # handle invalid file format
+                #help(QMessageBox.Icon)
+                # (icon, str, str, buttons, parent, flags
+                file_warning = QMessageBox(QMessageBox.Icon.Warning, 'Error Parsing File',
+                            "The selected file isn't compatible with this editor",
+                            buttons=QMessageBox.StandardButton.Ok
+                            )
+                file_warning.exec()
+            else:
+                self.save_changes_act.setDisabled(False)
+                self.setUpWindow()
+
         if not filename:
             filename, ok = QFileDialog.getOpenFileName(self, 'Open Save Game File',
                 os.curdir, 'Game Save Files (*.xml)')
             if ok:
-                self.game = Game(filename)
-                self.save_changes_act.setDisabled(False)
-                self.setUpWindow()
+                parseFile(filename)
         else:
-            self.game = Game(filename)
-            self.save_changes_act.setDisabled(False)
-            self.setUpWindow()
+            parseFile(filename)
 
     def showPerks(self):
         if hasattr(self, 'itemWindow'):

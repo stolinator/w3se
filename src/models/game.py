@@ -33,8 +33,10 @@ class Game:
 
     def load(self):
         self.metadata, self.rawdata = load(self.filename)
-        self.__xml = parse(self.rawdata)
-        self.characters = [Character(pc, i) for i, pc in enumerate(self.__xml('pc'))]
+        if self.metadata and self.rawdata:
+            self.__xml = parse(self.rawdata)
+            self.characters = [Character(pc, i) for i, pc in enumerate(self.__xml('pc'))]
+
 
     def save(self, save_filename):
         save(save_filename, self.metadata, self.save_data)
