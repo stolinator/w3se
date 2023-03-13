@@ -189,6 +189,7 @@ class MainWindow(QMainWindow):
                             )
                 file_warning.exec()
             else:
+                print(f'loaded metadata: {self.game.metadata}')
                 self.save_changes_act.setDisabled(False)
                 self.setUpWindow()
 
@@ -274,7 +275,8 @@ class MainWindow(QMainWindow):
                 shutil.copyfile(self.game.filename, f'{self.game.filename}.backup')
 
         if ok:
-            print(save_filename)
+            print(f'saving to: {save_filename}')
+            print(f'metadata: {self.game.metadata}')
             self.game.save(save_filename)
 
     def dragEnterEvent(self, event):
