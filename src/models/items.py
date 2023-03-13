@@ -47,7 +47,7 @@ class ItemModel(QAbstractTableModel):
     def flags(self, index):
         result = Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled
         result = result | Qt.ItemFlag.ItemIsDragEnabled | Qt.ItemFlag.ItemIsDropEnabled
-        if index.column() == 6:
+        if index.column() == self.fields.index('quantity'): # get rid of hard coded value
             result = result | Qt.ItemFlag.ItemIsEditable
         return result
 
@@ -56,12 +56,10 @@ class ItemModel(QAbstractTableModel):
 
     def removeRows(self, row, count, parent):
         self.beginRemoveRows(parent, row, row + count)
-        #for i in range(row, row + count):
         for i in range(count):
-        #for i in range(row, row + count)[::-1]:
             item = self.xml('item')[row]
             item.decompose()
-        self.endRemoveRows() # removing all items creates a bug
+        self.endRemoveRows()
         self.layoutChanged.emit()
         return True
 
@@ -70,35 +68,9 @@ class ItemModel(QAbstractTableModel):
 
     def insertRows(self, position, rows, value):
         print(f'debug:\tpos: {position}, rows: {rows}, values: {value}')
-        """
-          <item>
-		   <templateName>
-			Ammo762mm
-		   </templateName>
-		   <slot>
-			0
-		   </slot>
-		   <ammoLoaded>
-			0
-		   </ammoLoaded>
-		   <quantity>
-			67
-		   </quantity>
-		   <uid>
-			4c00a43f-c0bd-4517-adaf-de986999721a
-		   </uid>
-		   <isLockedForMerchant>
-			False
-		   </isLockedForMerchant>
-		   <merchantBarterLevelRequirement>
-			0
-		   </merchantBarterLevelRequirement>
-		  </item>
-        """
         self.beginInsertRows(QModelIndex(), position, position + rows - 1)
         for row in range(rows):
             if value not in self.currentItems():
-                #self.xml('perks')[0].append(f'<perk><perkname>{value}</perkname></perk>')
                 tag = soup(f'<item><templateName>{value}</templateName><slot>0</slot><quantity>1</quantity><uid>{str(uuid4())}</uid></item>', 'lxml-xml')
                 print(f'tag: {tag}')
                 print(f'{tag.item}')
@@ -107,7 +79,7 @@ class ItemModel(QAbstractTableModel):
         self.layoutChanged.emit()
 
     def dropMimeData(self, data, action ,row, column, parent):
-        print('data drop!')
+        #print('data drop!')
         def decode_data(ba):
             data = []
             item = {}
@@ -125,12 +97,13 @@ class ItemModel(QAbstractTableModel):
                 data.append(item)
             return data
         if data.hasFormat('application/x-qabstractitemmodeldatalist'):
-            print(data.formats())
+            #print(data.formats())
             ba = data.data('application/x-qabstractitemmodeldatalist')
             data_items = decode_data(ba)
             text = data_items[0][Qt.ItemDataRole.DisplayRole]
-            print(text.value())
+            #print(text.value())
             self.insertRows(self.rowCount(), 1, text.value())
         else:
-            print(data.formats())
+            #print(data.formats())
+            pass
         return True

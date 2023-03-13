@@ -1,9 +1,11 @@
 import sys, os, shutil
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QMainWindow, QTabWidget,
     QLabel, QPushButton, QMenuBar, QVBoxLayout, QHBoxLayout,
     QFileDialog, QTableView, QMessageBox, QListView, QLineEdit,
-    QListWidget)
+    QListWidget, QButtonGroup, QRadioButton, QHeaderView,
+    QAbstractItemView)
 from PyQt6.QtGui import QPixmap, QFont, QAction
 from models import CharacterModel, Game, ItemModel, PerkModel
 
@@ -16,6 +18,8 @@ class MainWindow(QMainWindow):
         self.createActions()
         self.createMenu()
         self.show()
+        with open('export_items.txt') as f:
+            self.all_items = [s.strip('\n') for s in f.readlines()]
 
     def initUI(self):
         self.setGeometry(200, 100, 720, 480)
@@ -41,6 +45,9 @@ class MainWindow(QMainWindow):
         item_view.showDropIndicator()
         model = ItemModel(xml = self.game.inventory)
         item_view.setModel(model)
+        header = item_view.horizontalHeader()
+        for i,f in enumerate(model.fields):
+            header.setSectionResizeMode(i, QHeaderView.ResizeMode.Stretch if i == 0 else QHeaderView.ResizeMode.ResizeToContents)
         vbox.addWidget(item_view)
         hbox = QHBoxLayout()
         btn_add = QPushButton('Show all in-game items')
@@ -67,6 +74,7 @@ class MainWindow(QMainWindow):
             perklist.setAcceptDrops(True)
             perklist.showDropIndicator()
             perklist.setModel(character.perks)
+            perklist.setSelectionMode(QAbstractItemView.SelectionMode.ContiguousSelection)
             name = character.displayName
             character_page = QWidget()
             vbox = QVBoxLayout()
@@ -77,10 +85,22 @@ class MainWindow(QMainWindow):
             hbox.addLayout(hbox_vbox)
             hbox_vbox.addWidget(QLabel(f"Edit {name}'s Perks"))
             hbox_vbox.addWidget(perklist)
-            btn_show_perks = QPushButton('show all perks')
+            btn_show_perks = QPushButton('Show all perks')
             btn_show_perks.clicked.connect(self.showPerks)
+            btn_remove_perks = QPushButton('Remove selected perks')
+            # get selected, remove them
+            #btn_remove_perks.clicked.connect((lambda ch: lambda: print(ch.perks.currentPerks()))(character))
+            def remove_selected(current_perklist, model):
+                get_rid = {}
+                [get_rid.setdefault(i.row(), i) for i in current_perklist.selectedIndexes()]
+                print(get_rid)
+                #[model.removeRow(i.row(), i) for i in sorted(current_perklist.selectedIndexes(), reverse=True)]
+                [model.removeRow(i, get_rid[i]) for i in sorted(get_rid.keys(), reverse=True)]
+
+            btn_remove_perks.clicked.connect((lambda pl, model: lambda: remove_selected(pl, model))(perklist, character.perks))
             perk_btns_box = QHBoxLayout()
             perk_btns_box.addWidget(btn_show_perks)
+            perk_btns_box.addWidget(btn_remove_perks)
             hbox_vbox.addLayout(perk_btns_box)
             character_page.setLayout(vbox)
             tabs.addTab(character_page, name)
@@ -139,6 +159,7 @@ class MainWindow(QMainWindow):
         self.perkWindow.setLayout(vbox)
         vbox.addWidget(QLabel('drag perks to your character to add'))
         perklist = QListWidget()
+        perklist.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         perklist.setDragEnabled(True)
         with open('export_perks.txt') as f:
             data = [s.strip('\n') for s in f.readlines()]
@@ -150,18 +171,40 @@ class MainWindow(QMainWindow):
         if hasattr(self, 'perkWindow'):
             self.perkWindow.close()
         self.itemWindow = QWidget()
-        self.itemWindow.setWindowTitle('all items')
+        self.itemWindow.setWindowTitle('All In-Game Items')
         self.itemWindow.setGeometry(200, 100, 600, 480)
         vbox = QVBoxLayout()
         self.itemWindow.setLayout(vbox)
-        vbox.addWidget(QLabel('drag items to your inventory to add'))
+        vbox.addWidget(QLabel('You can drag and drop items into your inventory from here'))
+        itemfilters_hbox = QHBoxLayout()
+        itemfilters_hbox.addWidget(QLabel('Filters:'))
+        itemfilters_group = QButtonGroup()
+        # possibly missing types, I don't haven't scraped enough saves to know?
+        filter_types = {'Consumables': 'ITM_Consumable', 'Armor Mods': 'ITM_ArmorMod',
+                        'Armor': 'ITM_Equip_Armor', 'Weapon Mods': 'ITM_WeaponMod',
+                        'Weapons': 'ITM_Equip_Weapon', 'Ammo': 'Ammo',
+                        'Crafting': 'ITM_Crafting', 'Trinkets': 'ITM_Equip_Trinket',
+                        'Cyborg': 'ITM_Equip_Cyborg'
+                        }
+        vbox.addLayout(itemfilters_hbox)
         itemlist = QListWidget()
         itemlist.setDragEnabled(True)
-        with open('export_items.txt') as f:
-            data = [s.strip('\n') for s in f.readlines()]
-            itemlist.addItems(data)
+        itemlist.addItems(self.all_items)
         vbox.addWidget(itemlist)
+        #vbox.addWidget(QPushButton('Add all selected items to inventory'))
         self.itemWindow.show()
+        def filter_items(text):
+            for i in range(itemlist.count()):
+                itemlist.item(i).setHidden(True)
+            show = itemlist.findItems(filter_types[text], Qt.MatchFlag.MatchStartsWith)
+            for item in show:
+                item.setHidden(False)
+        for i in filter_types.keys():
+            rbtn = QRadioButton(i)
+            # shouldn't use IIFE here, it's messy
+            (lambda text: rbtn.clicked.connect(lambda: filter_items(text)))(i)
+            itemfilters_group.addButton(rbtn)
+            itemfilters_hbox.addWidget(rbtn)
 
     def saveFile(self):
         save_filename, ok = QFileDialog.getSaveFileName(self, 'Save File',
