@@ -48,6 +48,35 @@ class MainWindow(QMainWindow):
         header = item_view.horizontalHeader()
         for i,f in enumerate(model.fields):
             header.setSectionResizeMode(i, QHeaderView.ResizeMode.Stretch if i == 0 else QHeaderView.ResizeMode.ResizeToContents)
+        # filters
+        itemfilters_hbox = QHBoxLayout()
+        itemfilters_hbox.addWidget(QLabel('Filters:'))
+        itemfilters_group = QButtonGroup()
+        filter_types = {'Consumables': 'ITM_Consumable', 'Armor Mods': 'ITM_ArmorMod',
+                        'Armor': 'ITM_Equip_Armor', 'Weapon Mods': 'ITM_WeaponMod',
+                        'Weapons': 'ITM_Equip_Weapon', 'Ammo': 'Ammo',
+                        'Crafting': 'ITM_Crafting', 'Trinkets': 'ITM_Equip_Trinket',
+                        'Cyborg': 'ITM_Equip_Cyborg', 'Clear Filters': ''
+                        }
+        vbox.addLayout(itemfilters_hbox)
+
+        def filter_items(text):
+            #help(model)
+            for i in range(model.rowCount()):
+                #item_view.item(i).setHidden(True)
+                if model.data(model.index(i, 0)).startswith(filter_types[text]) or text == 'Clear Filters':
+                    item_view.setRowHidden(i, False)
+                else:
+                    item_view.setRowHidden(i, True)
+            #show = item_view.findItems(filter_types[text], Qt.MatchFlag.MatchStartsWith)
+
+        for i in filter_types.keys():
+            rbtn = QRadioButton(i)
+            # shouldn't use IIFE here, it's messy
+            (lambda text: rbtn.clicked.connect(lambda: filter_items(text)))(i)
+            itemfilters_group.addButton(rbtn)
+            itemfilters_hbox.addWidget(rbtn)
+
         vbox.addWidget(item_view)
         hbox = QHBoxLayout()
         btn_add = QPushButton('Show all in-game items')
@@ -189,6 +218,7 @@ class MainWindow(QMainWindow):
         vbox.addLayout(itemfilters_hbox)
         itemlist = QListWidget()
         itemlist.setDragEnabled(True)
+        itemlist.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         itemlist.addItems(self.all_items)
         vbox.addWidget(itemlist)
         #vbox.addWidget(QPushButton('Add all selected items to inventory'))

@@ -82,7 +82,6 @@ class ItemModel(QAbstractTableModel):
         #print('data drop!')
         def decode_data(ba):
             data = []
-            item = {}
             ds = QDataStream(ba)
             while not ds.atEnd():
                 row = ds.readInt32()
@@ -90,6 +89,7 @@ class ItemModel(QAbstractTableModel):
 
                 map_items = ds.readInt32()
                 for i in range(map_items):
+                    item = {}
                     key = ds.readInt32()
                     value = QVariant()
                     ds >> value
@@ -100,9 +100,9 @@ class ItemModel(QAbstractTableModel):
             #print(data.formats())
             ba = data.data('application/x-qabstractitemmodeldatalist')
             data_items = decode_data(ba)
-            text = data_items[0][Qt.ItemDataRole.DisplayRole]
-            #print(text.value())
-            self.insertRows(self.rowCount(), 1, text.value())
+            for data_item in data_items:
+                text = data_item[Qt.ItemDataRole.DisplayRole]
+                self.insertRows(self.rowCount(), 1, text.value())
         else:
             #print(data.formats())
             pass
