@@ -197,6 +197,7 @@ class MainWindow(QMainWindow):
             filename, ok = QFileDialog.getOpenFileName(self, 'Open Save Game File',
                 os.curdir, 'Game Save Files (*.xml)')
             if ok:
+                print(f'filename: {filename}')
                 parseFile(filename)
         else:
             parseFile(filename)
