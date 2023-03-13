@@ -67,19 +67,15 @@ class ItemModel(QAbstractTableModel):
         return [tag.string for tag in self.xml('templateName')]
 
     def insertRows(self, position, rows, value):
-        print(f'debug:\tpos: {position}, rows: {rows}, values: {value}')
         self.beginInsertRows(QModelIndex(), position, position + rows - 1)
         for row in range(rows):
             if value not in self.currentItems():
                 tag = soup(f'<item><templateName>{value}</templateName><slot>0</slot><quantity>1</quantity><uid>{str(uuid4())}</uid></item>', 'lxml-xml')
-                print(f'tag: {tag}')
-                print(f'{tag.item}')
                 self.xml.append(tag.item)
         self.endInsertRows()
         self.layoutChanged.emit()
 
     def dropMimeData(self, data, action ,row, column, parent):
-        #print('data drop!')
         def decode_data(ba):
             data = []
             ds = QDataStream(ba)

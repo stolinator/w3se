@@ -151,7 +151,7 @@ class MainWindow(QMainWindow):
         for label, func in tab_functions.items():
             main_widget.addTab(func(), label)
         self.setCentralWidget(main_widget)
-        del self.waiting_label
+        self.waiting_label = None
 
     def createActions(self):
 
@@ -176,17 +176,15 @@ class MainWindow(QMainWindow):
         file_menu.addAction(self.quit_act)
 
     def loadFile(self, filename=None):
+
         def parseFile(filename):
             self.game = Game(filename)
             if (self.game.metadata is None):
-                # handle invalid file format
-                #help(QMessageBox.Icon)
-                # (icon, str, str, buttons, parent, flags
-                file_warning = QMessageBox(QMessageBox.Icon.Warning, 'Error Parsing File',
+                file_warning = QMessageBox.warning(self, 'Error Parsing File',
                             "The selected file isn't compatible with this editor",
                             buttons=QMessageBox.StandardButton.Ok
                             )
-                file_warning.exec()
+                del self.game
             else:
                 self.save_changes_act.setDisabled(False)
                 self.setUpWindow()
