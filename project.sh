@@ -1,6 +1,11 @@
 #!/bin/bash
 
-source w3se/bin/activate
+if [ -d w3se ]
+then
+  source w3se/bin/activate
+else
+  echo "w3se not found, unable to activate virtual environment"
+fi
 
 show_help() {
   echo Usage: project [COMMAND]
