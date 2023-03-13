@@ -127,7 +127,6 @@ class MainWindow(QMainWindow):
             def remove_selected(current_perklist, model):
                 get_rid = {}
                 [get_rid.setdefault(i.row(), i) for i in current_perklist.selectedIndexes()]
-                print(get_rid)
                 #[model.removeRow(i.row(), i) for i in sorted(current_perklist.selectedIndexes(), reverse=True)]
                 [model.removeRow(i, get_rid[i]) for i in sorted(get_rid.keys(), reverse=True)]
 
@@ -189,7 +188,6 @@ class MainWindow(QMainWindow):
                             )
                 file_warning.exec()
             else:
-                print(f'loaded metadata: {self.game.metadata}')
                 self.save_changes_act.setDisabled(False)
                 self.setUpWindow()
 
@@ -197,7 +195,6 @@ class MainWindow(QMainWindow):
             filename, ok = QFileDialog.getOpenFileName(self, 'Open Save Game File',
                 os.curdir, 'Game Save Files (*.xml)')
             if ok:
-                print(f'filename: {filename}')
                 parseFile(filename)
         else:
             parseFile(filename)
@@ -276,8 +273,6 @@ class MainWindow(QMainWindow):
                 shutil.copyfile(self.game.filename, f'{self.game.filename}.backup')
 
         if ok:
-            print(f'saving to: {save_filename}')
-            print(f'metadata: {self.game.metadata}')
             self.game.save(save_filename)
 
     def dragEnterEvent(self, event):
