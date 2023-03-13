@@ -17,6 +17,10 @@ class MainWindow(QMainWindow):
         self.initUI()
         self.createActions()
         self.createMenu()
+        self.setAcceptDrops(True)
+        self.waiting_label = QLabel('Drag and drop a save file or use the file menu to get started...')
+        self.waiting_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setCentralWidget(self.waiting_label)
         self.show()
         with open('export_items.txt') as f:
             self.all_items = [s.strip('\n') for s in f.readlines()]
@@ -24,6 +28,7 @@ class MainWindow(QMainWindow):
     def initUI(self):
         self.setGeometry(200, 100, 720, 480)
         self.setWindowTitle('Wasteland 3 Save Editor')
+
 
     def createGlobalEditor(self):
         editor = QWidget()
@@ -147,6 +152,7 @@ class MainWindow(QMainWindow):
         for label, func in tab_functions.items():
             main_widget.addTab(func(), label)
         self.setCentralWidget(main_widget)
+        del self.waiting_label
 
     def createActions(self):
 
@@ -170,10 +176,15 @@ class MainWindow(QMainWindow):
         file_menu.addSeparator()
         file_menu.addAction(self.quit_act)
 
-    def loadFile(self):
-        filename, ok = QFileDialog.getOpenFileName(self, 'Open Save Game File',
-            os.curdir, 'Game Save Files (*.xml)')
-        if ok:
+    def loadFile(self, filename=None):
+        if not filename:
+            filename, ok = QFileDialog.getOpenFileName(self, 'Open Save Game File',
+                os.curdir, 'Game Save Files (*.xml)')
+            if ok:
+                self.game = Game(filename)
+                self.save_changes_act.setDisabled(False)
+                self.setUpWindow()
+        else:
             self.game = Game(filename)
             self.save_changes_act.setDisabled(False)
             self.setUpWindow()
@@ -183,7 +194,7 @@ class MainWindow(QMainWindow):
             self.itemWindow.close()
         self.perkWindow = QWidget()
         self.perkWindow.setWindowTitle('all perks')
-        self.perkWindow.setGeometry(200, 100, 600, 480)
+        self.perkWindow.setGeometry(0, 0, 600, 480)
         vbox = QVBoxLayout()
         self.perkWindow.setLayout(vbox)
         vbox.addWidget(QLabel('drag perks to your character to add'))
@@ -195,13 +206,14 @@ class MainWindow(QMainWindow):
             perklist.addItems(data)
         vbox.addWidget(perklist)
         self.perkWindow.show()
+        self.perkWindow.move(self.geometry().center())
 
     def showItems(self):
         if hasattr(self, 'perkWindow'):
             self.perkWindow.close()
         self.itemWindow = QWidget()
         self.itemWindow.setWindowTitle('All In-Game Items')
-        self.itemWindow.setGeometry(200, 100, 600, 480)
+        self.itemWindow.setGeometry(0, 0, 600, 480)
         vbox = QVBoxLayout()
         self.itemWindow.setLayout(vbox)
         vbox.addWidget(QLabel('You can drag and drop items into your inventory from here'))
@@ -223,6 +235,8 @@ class MainWindow(QMainWindow):
         vbox.addWidget(itemlist)
         #vbox.addWidget(QPushButton('Add all selected items to inventory'))
         self.itemWindow.show()
+        self.itemWindow.move(self.geometry().center())
+
         def filter_items(text):
             for i in range(itemlist.count()):
                 itemlist.item(i).setHidden(True)
@@ -251,6 +265,17 @@ class MainWindow(QMainWindow):
         if ok:
             print(save_filename)
             self.game.save(save_filename)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        files = [u.toLocalFile() for u in event.mimeData().urls()]
+        if files[0].endswith('xml'):
+            self.loadFile(files[0])
 
 
 if __name__ == '__main__':
