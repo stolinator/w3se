@@ -15,13 +15,11 @@ class PerkModel(QAbstractListModel):
         return None
 
     def rowCount(self, parent=None):
-        print(f"row count: {len(self.xml('perk'))}")
         return len(self.xml('perk')) or 0
 
     def data(self, index, role=Qt.ItemDataRole.DisplayRole):
 
         if role == Qt.ItemDataRole.DisplayRole and index.row() < self.rowCount():
-            print(f"looking for {index.row()}")
             return str(self.xml('perk')[index.row()].string)
         return None
 
@@ -72,9 +70,7 @@ class PerkModel(QAbstractListModel):
 
     def removeRows(self, row, count, parent):
         self.beginRemoveRows(parent, row, row + count)
-        print(f"all there is: {self.xml('perk')}")
         for i in range(count):
-            print(f"removing! {self.xml('perk')[row]} at {row}")
             item = self.xml('perk')[row]
             item.decompose()
         self.endRemoveRows()
