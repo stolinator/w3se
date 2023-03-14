@@ -122,12 +122,10 @@ class MainWindow(QMainWindow):
             btn_show_perks = QPushButton('Show all perks')
             btn_show_perks.clicked.connect(self.showPerks)
             btn_remove_perks = QPushButton('Remove selected perks')
-            # get selected, remove them
-            #btn_remove_perks.clicked.connect((lambda ch: lambda: print(ch.perks.currentPerks()))(character))
+
             def remove_selected(current_perklist, model):
                 get_rid = {}
                 [get_rid.setdefault(i.row(), i) for i in current_perklist.selectedIndexes()]
-                #[model.removeRow(i.row(), i) for i in sorted(current_perklist.selectedIndexes(), reverse=True)]
                 [model.removeRow(i, get_rid[i]) for i in sorted(get_rid.keys(), reverse=True)]
 
             btn_remove_perks.clicked.connect((lambda pl, model: lambda: remove_selected(pl, model))(perklist, character.perks))
@@ -142,6 +140,9 @@ class MainWindow(QMainWindow):
         return editor
 
     def setUpWindow(self):
+        assert self.game is not None
+        assert self.game.metadata is not None
+        #assert self.game.bug is True
         main_widget = QTabWidget()
         tab_functions = {
             'Edit Characters': self.createCharacterEditor,
@@ -184,7 +185,6 @@ class MainWindow(QMainWindow):
                             "The selected file isn't compatible with this editor",
                             buttons=QMessageBox.StandardButton.Ok
                             )
-                del self.game
             else:
                 self.save_changes_act.setDisabled(False)
                 self.setUpWindow()
@@ -271,7 +271,7 @@ class MainWindow(QMainWindow):
                 shutil.copyfile(self.game.filename, f'{self.game.filename}.backup')
 
         if ok:
-            self.game.save(save_filename)
+            self.game.save(save_filename) # causes "Windows fatal exception: access violation" (windows 10)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():

@@ -1,4 +1,4 @@
-import os, re, lzf
+import re, lzf
 from bs4 import BeautifulSoup as soup
 
 def load(filename: str) -> (str, soup):
@@ -39,17 +39,22 @@ def load(filename: str) -> (str, soup):
 def save(filename, meta_data, save_data):
 
     data_size = len(save_data)
-    compressed_data = lzf.compress(save_data)
+    try:
+        compressed_data = lzf.compress(save_data.encode(), len(save_data)) # PyPI version of lzf will crash on windows
+        #https://github.com/teepark/python-lzf/issues/5
+        # use patched version of python-lzf: https://www.lfd.uci.edu/~gohlke/pythonlibs/#python-lzf
+    except:
+        print("lzf was unable to compress the data, saving raw text")
+        compressed_data = save_data.encode()
     save_data_size = len(compressed_data)
     meta_data = update_meta_data(meta_data, data_size, save_data_size)
 
     with open(filename, 'wb+') as f:
         f.write(meta_data.encode('utf-8'))
         f.write(compressed_data)
-    #print(f'Data Size: {data_size}, SaveDataSize: {save_data_size}')
 
 def update_meta_data(meta_data, data_size, save_data_size):
-    # find/update DataSize and SaveDataSize 
+    # find/update DataSize and SaveDataSize
     meta_data = re.sub('\sDataSize:=\d+\s', f'\nDataSize:={data_size}\n', meta_data)
     meta_data = re.sub('\sSaveDataSize:=\d+\s', f'\nSaveDataSize:={save_data_size}\n', meta_data)
     return meta_data
@@ -59,4 +64,3 @@ def parse(data):
     xml = soup(data, 'lxml-xml')
     characters = xml('pc')
     return xml
-
