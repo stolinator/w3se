@@ -2,9 +2,7 @@
 import sys, os, subprocess
 sys.path.append('src')
 from src.models import Game
-
-#filename = 'Autosave1.xml'
-
+from src.config import items_filename, perks_filename
 
 
 if len(sys.argv) > 1:
@@ -12,10 +10,10 @@ if len(sys.argv) > 1:
     cmd = subprocess.run(f"find {sys.argv[1]} | grep -P 'xml$'", shell=True, capture_output=True)
     files = cmd.stdout.decode().split('\n')
 
-    with open('export_items.txt') as f:
+    with open(items_filename) as f:
         items = set([s.strip('\n') for s in f.readlines()])
 
-    with open('export_perks.txt') as f:
+    with open(perks_filename) as f:
         perks = set([s.strip('\n') for s in f.readlines()])
 
     for filename in files:
@@ -32,11 +30,13 @@ if len(sys.argv) > 1:
             new_perks = new_perks.union( [p.string for p in character.perks.xml('perkname')] )
         perks = perks.union(new_perks)
 
-    with open('export_items.txt', 'w') as f:
+    with open(items_filename, 'w') as f:
+        items = sorted(list(items))
         for i in items:
             f.write(f'{i}\n')
 
-    with open('export_perks.txt', 'w') as f:
+    with open(perks_filename, 'w') as f:
+        perks = sorted(list(perks))
         for p in perks:
             f.write(f'{p}\n')
 

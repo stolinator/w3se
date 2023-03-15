@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import (
     QAbstractItemView, QMessageBox)
 from PyQt6.QtGui import QPixmap, QFont, QAction
 from models import CharacterModel, Game, ItemModel, PerkModel
+from config import items_filename, perks_filename
 
 
 class MainWindow(QMainWindow):
@@ -22,7 +23,7 @@ class MainWindow(QMainWindow):
         self.waiting_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setCentralWidget(self.waiting_label)
         self.show()
-        with open('export_items.txt') as f:
+        with open(items_filename) as f:
             self.all_items = [s.strip('\n') for s in f.readlines()]
 
     def initUI(self):
@@ -209,7 +210,7 @@ class MainWindow(QMainWindow):
         perklist = QListWidget()
         perklist.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         perklist.setDragEnabled(True)
-        with open('export_perks.txt') as f:
+        with open(perks_filename) as f:
             data = [s.strip('\n') for s in f.readlines()]
             perklist.addItems(data)
         vbox.addWidget(perklist)
@@ -285,7 +286,10 @@ class MainWindow(QMainWindow):
             self.loadFile(files[0])
 
 
-if __name__ == '__main__':
+def main():
     app = QApplication(sys.argv)
     window = MainWindow()
     sys.exit(app.exec())
+
+if __name__ == '__main__':
+    main()

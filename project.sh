@@ -32,6 +32,9 @@ then
 elif [ "$1" == "run" ]
 then
   python src/main.py
+elif [ "$1" == "build" ]
+then
+  python -m PyInstaller -F --clean --add-data 'assets/export_items.txt:./assets' --add-data 'assets/export_perks.txt:./assets' --name w3se src/main.py
 else
   show_help
 fi
