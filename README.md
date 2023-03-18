@@ -17,7 +17,7 @@ Use the `File- > Load Save Game` dialog. Browse to your save game file, and edit
 - Attributes and Attribute points
 - Add/Edit/Remove items in the party inventory
 - Add perks to each character
-- Edit money quantity
+- Edit money
 
 
 ## Installation
@@ -51,11 +51,10 @@ Run `pylama src` to view any linter conflicts.
 
 ## Planned Updates
 
-- Improve usability
-    - The list views for adding/removing items and perks are cool, but need work.
 - A more efficient way to find the Wasteland 3 save files on a given system
-    - Should put common locations in the README
-- Sort, searching, and filtering for the perk and item menus
-- Removing perks
+  - Should put common locations in the README
+- Filtering by quirk, background, and perks
+- Make Perk and Inventory screens searchable
+- Allow manually adding items/perks if not available in provided text files
 - A more efficient inventory browser (large inventories cause a noticeable app slow-down)
 - Include pre-built releases for anyone looking to test out the project!

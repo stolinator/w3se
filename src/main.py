@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import (
     QLabel, QPushButton, QMenuBar, QVBoxLayout, QHBoxLayout,
     QFileDialog, QTableView, QMessageBox, QListView, QLineEdit,
     QListWidget, QButtonGroup, QRadioButton, QHeaderView,
-    QAbstractItemView, QMessageBox)
+    QAbstractItemView, QMessageBox, QLineEdit)
 from PyQt6.QtGui import QPixmap, QFont, QAction
 from models import CharacterModel, Game, ItemModel, PerkModel
 from config import items_filename, perks_filename
@@ -52,8 +52,12 @@ class MainWindow(QMainWindow):
         model = ItemModel(xml = self.game.inventory)
         item_view.setModel(model)
         header = item_view.horizontalHeader()
+        """
         for i,f in enumerate(model.fields):
             header.setSectionResizeMode(i, QHeaderView.ResizeMode.Stretch if i == 0 else QHeaderView.ResizeMode.ResizeToContents)
+        """
+        for i, f in enumerate(model.fields):
+            header.setSectionResizeMode(i, QHeaderView.ResizeMode.ResizeToContents)
         # filters
         itemfilters_hbox = QHBoxLayout()
         itemfilters_hbox.addWidget(QLabel('Filters:'))
@@ -65,6 +69,22 @@ class MainWindow(QMainWindow):
                         'Cyborg': 'ITM_Equip_Cyborg', 'Clear Filters': ''
                         }
         vbox.addLayout(itemfilters_hbox)
+        # search box
+        def search_items(substr):
+            substr = substr.lower()
+            for i in range(model.rowCount()):
+                if model.data(model.index(i, 0)).lower().find(substr) != -1:
+                    item_view.setRowHidden(i, False)
+                else:
+                    item_view.setRowHidden(i, True)
+        itemsearch_hbox = QHBoxLayout()
+        itemsearch_label = QLabel('Search')
+        itemsearch = QLineEdit()
+        #itemsearch.changeEvent.connect(lambda ev: print('textbox change'))
+        itemsearch.textChanged.connect(lambda: search_items(itemsearch.text()))
+        itemsearch_hbox.addWidget(itemsearch_label)
+        itemsearch_hbox.addWidget(itemsearch)
+        vbox.addLayout(itemsearch_hbox)
 
         def filter_items(text):
             #help(model)
@@ -89,7 +109,9 @@ class MainWindow(QMainWindow):
         btn_add.clicked.connect(self.showItems)
         btn_remove = QPushButton('Remove selected items')
         btn_remove.clicked.connect(
-            lambda: [model.removeRow(i.row(), i) for i in sorted(item_view.selectedIndexes(), reverse=True)]
+            #lambda: [model.removeRow(i.row(), i) for i in sorted(item_view.selectedIndexes(), reverse=True)]
+            #lambda: [model.(i.row(), i) for i in sorted(item_view.selectedIndexes(), reverse=True)]
+            lambda: model.removeRowsFromList(sorted([i.row() for i in item_view.selectedIndexes()], reverse=True))
         )
         hbox.addWidget(btn_add)
         hbox.addWidget(btn_remove)
@@ -97,6 +119,24 @@ class MainWindow(QMainWindow):
         return editor
 
     def createCharacterEditor(self):
+        filter_types = {'Quirks': 'QRK', 'Perks': 'PRK', 'Backgrounds': 'BCK', 'Clear': 'Clear' }
+        def search_perks(text, view):
+            print(text)
+            text = text.lower()
+            model = view.model()
+            rows = model.rowCount()
+            for i in range(rows):
+                if model.data(model.index(i, 0)).lower().find(text) != -1:
+                    view.setRowHidden(i, False)
+                else:
+                    view.setRowHidden(i, True)
+        def filter_perks(text, view):
+            model = view.model()
+            for i in range(model.rowCount()):
+                if model.data(model.index(i, 0)).startswith(filter_types[text]) or text == 'Clear Filter':
+                    view.setRowHidden(i, False)
+                else:
+                    view.setRowHidden(i, True)
         editor = QWidget()
         editor_vbox = QVBoxLayout()
         tabs = QTabWidget()
@@ -110,6 +150,17 @@ class MainWindow(QMainWindow):
             perklist.showDropIndicator()
             perklist.setModel(character.perks)
             perklist.setSelectionMode(QAbstractItemView.SelectionMode.ContiguousSelection)
+            perkfilters_hbox = QHBoxLayout()
+            perkfilters_group = QButtonGroup()
+
+
+            perk_search_hbox = QHBoxLayout()
+            perk_search = QLineEdit()
+            perk_search_label = QLabel('Search')
+            (lambda ps, view: ps.textChanged.connect(lambda: search_perks(ps.text(), view)))(perk_search, perklist)
+            perk_search_hbox.addWidget(perk_search_label)
+            perk_search_hbox.addWidget(perk_search)
+
             name = character.displayName
             character_page = QWidget()
             vbox = QVBoxLayout()
@@ -120,9 +171,20 @@ class MainWindow(QMainWindow):
             hbox.addLayout(hbox_vbox)
             hbox_vbox.addWidget(QLabel(f"Edit {name}'s Perks"))
             hbox_vbox.addWidget(perklist)
+
+            hbox_vbox.addLayout(perkfilters_hbox)
+            hbox_vbox.addLayout(perk_search_hbox)
+
             btn_show_perks = QPushButton('Show all perks')
             btn_show_perks.clicked.connect(self.showPerks)
             btn_remove_perks = QPushButton('Remove selected perks')
+
+            for i in filter_types.keys():
+                rbtn = QRadioButton(i)
+                # shouldn't use IIFE here, it's messy
+                (lambda text, view: rbtn.clicked.connect(lambda: filter_perks(text, view)))(i, perklist)
+                perkfilters_group.addButton(rbtn)
+                perkfilters_hbox.addWidget(rbtn)
 
             def remove_selected(current_perklist, model):
                 get_rid = {}
@@ -207,6 +269,27 @@ class MainWindow(QMainWindow):
         vbox = QVBoxLayout()
         self.perkWindow.setLayout(vbox)
         vbox.addWidget(QLabel('drag perks to your character to add'))
+
+        perkfilters_hbox = QHBoxLayout()
+        perkfilters_hbox.addWidget(QLabel('Filters:'))
+        perkfilters_group = QButtonGroup()
+        vbox.addLayout(perkfilters_hbox)
+
+        filter_types = {'Quirks': 'QRK', 'Perks': 'PRK', 'Backgrounds': 'BCK' }
+        def search_perks(text):
+            show = perklist.findItems(text, Qt.MatchFlag.MatchContains)
+            [(perklist.item(i).setHidden(False) if perklist.item(i) in show else perklist.item(i).setHidden(True)) for i in range(perklist.count())]
+        def filter_perks(text):
+            show = perklist.findItems(filter_types[text], Qt.MatchFlag.MatchStartsWith)
+            [(perklist.item(i).setHidden(False) if perklist.item(i) in show else perklist.item(i).setHidden(True)) for i in range(perklist.count())]
+        perk_search_hbox = QHBoxLayout()
+        perk_search = QLineEdit()
+        perk_search_label = QLabel('Search')
+        perk_search.textChanged.connect(lambda: search_perks(perk_search.text()))
+        perk_search_hbox.addWidget(perk_search_label)
+        perk_search_hbox.addWidget(perk_search)
+        vbox.addLayout(perk_search_hbox)
+
         perklist = QListWidget()
         perklist.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         perklist.setDragEnabled(True)
@@ -216,6 +299,15 @@ class MainWindow(QMainWindow):
         vbox.addWidget(perklist)
         self.perkWindow.show()
         self.perkWindow.move(self.geometry().center())
+
+
+        for i in filter_types.keys():
+            rbtn = QRadioButton(i)
+            # shouldn't use IIFE here, it's messy
+            (lambda text: rbtn.clicked.connect(lambda: filter_perks(text)))(i)
+            perkfilters_group.addButton(rbtn)
+            perkfilters_hbox.addWidget(rbtn)
+
 
     def showItems(self):
         if hasattr(self, 'perkWindow'):
@@ -237,21 +329,38 @@ class MainWindow(QMainWindow):
                         'Cyborg': 'ITM_Equip_Cyborg'
                         }
         vbox.addLayout(itemfilters_hbox)
+
         itemlist = QListWidget()
         itemlist.setDragEnabled(True)
         itemlist.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         itemlist.addItems(self.all_items)
+
+        def search_items(substr):
+            substr = substr.lower()
+            show = itemlist.findItems(substr, Qt.MatchFlag.MatchContains)
+            [(itemlist.item(i).setHidden(False) if itemlist.item(i) in show else itemlist.item(i).setHidden(True)) for i in range(itemlist.count())]
+        itemsearch_hbox = QHBoxLayout()
+        itemsearch_label = QLabel('Search')
+        itemsearch = QLineEdit()
+        #itemsearch.changeEvent.connect(lambda ev: print('textbox change'))
+        itemsearch.textChanged.connect(lambda: search_items(itemsearch.text()))
+        itemsearch_hbox.addWidget(itemsearch_label)
+        itemsearch_hbox.addWidget(itemsearch)
+        vbox.addLayout(itemsearch_hbox)
+
         vbox.addWidget(itemlist)
         #vbox.addWidget(QPushButton('Add all selected items to inventory'))
         self.itemWindow.show()
         self.itemWindow.move(self.geometry().center())
 
         def filter_items(text):
-            for i in range(itemlist.count()):
-                itemlist.item(i).setHidden(True)
+            #for i in range(itemlist.count()):
+                #itemlist.item(i).setHidden(True)
+            #show = itemlist.findItems(filter_types[text], Qt.MatchFlag.MatchStartsWith)
+            #for item in show:
+                #item.setHidden(False)
             show = itemlist.findItems(filter_types[text], Qt.MatchFlag.MatchStartsWith)
-            for item in show:
-                item.setHidden(False)
+            [(itemlist.item(i).setHidden(False) if itemlist.item(i) in show else itemlist.item(i).setHidden(True)) for i in range(itemlist.count())]
         for i in filter_types.keys():
             rbtn = QRadioButton(i)
             # shouldn't use IIFE here, it's messy
@@ -284,6 +393,10 @@ class MainWindow(QMainWindow):
         files = [u.toLocalFile() for u in event.mimeData().urls()]
         if files[0].endswith('xml'):
             self.loadFile(files[0])
+
+    def closeEvent(self, event):
+        self.perkWindow.close() if hasattr(self, 'perkWindow') else None
+        self.itemWindow.close() if hasattr(self, 'itemWindow') else None
 
 
 def main():
