@@ -4,6 +4,8 @@ A save game editor for inXile Entertainment's Wasteland 3
 
 *This was tested against save files from the Linux Steam version (1.6.9.420.309496) without any DLC.*
 
+![](media/demo.webp)
+
 ## Usage
 
 After **Installing** (see below), run `python src/main.py` to launch.
