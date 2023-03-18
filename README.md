@@ -10,6 +10,7 @@ After **Installing** (see below), run `python src/main.py` to launch.
 
 Use the `File- > Load Save Game` dialog. Browse to your save game file, and edit away!
 
+
 ## Features
 
 - View party members and edit their stats
@@ -21,6 +22,7 @@ Use the `File- > Load Save Game` dialog. Browse to your save game file, and edit
 
 ## Installation
 
+
 1. Clone the repository to your local system
   - `git clone https://github.com/stolinator/w3se.git`
 2. [Optional] set up a virtual environment
@@ -29,6 +31,7 @@ Use the `File- > Load Save Game` dialog. Browse to your save game file, and edit
   - `source w3se/bin/activate`
 3. Use `pip` to install dependencies
   - `pip install -r requirements.txt`
+      * *If you are on Windows, you'll need a [patched version](https://www.lfd.uci.edu/~gohlke/pythonlibs/#python-lzf) of `python-lzf`* (see [https://github.com/teepark/python-lzf/issues/5](https://github.com/teepark/python-lzf/issues/5))
 4. Run `main.py`
   - `python src/main.py`
 

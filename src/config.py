@@ -7,7 +7,6 @@ def resource_path(rel_path):
     except Exception:
         base_path = os.environ.get('_MEIPASS2', os.path.abspath('.'))
 
-    print(f"returning {os.path.join(base_path, rel_path)}")
     return os.path.join(base_path, rel_path)
 
 asset_dirname = 'assets'
