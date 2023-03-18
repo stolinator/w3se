@@ -68,13 +68,15 @@ class MainWindow(QMainWindow):
 
         def filter_items(text):
             #help(model)
+            [item_view.setRowHidden(i, not (model.data(model.index(i, 0)).startswith(filter_types[text]) or (text == 'Clear Filters'))) for i in range(model.rowCount())]
+            """
             for i in range(model.rowCount()):
-                #item_view.item(i).setHidden(True)
+
                 if model.data(model.index(i, 0)).startswith(filter_types[text]) or text == 'Clear Filters':
                     item_view.setRowHidden(i, False)
                 else:
                     item_view.setRowHidden(i, True)
-            #show = item_view.findItems(filter_types[text], Qt.MatchFlag.MatchStartsWith)
+            """
 
         for i in filter_types.keys():
             rbtn = QRadioButton(i)
