@@ -24,7 +24,6 @@ Use the `File- > Load Save Game` dialog. Browse to your save game file, and edit
 
 ## Installation
 
-
 1. Clone the repository to your local system
   - `git clone https://github.com/stolinator/w3se.git`
 2. [Optional] set up a virtual environment
@@ -36,6 +35,20 @@ Use the `File- > Load Save Game` dialog. Browse to your save game file, and edit
       * *If you are on Windows, you'll need a [patched version](https://www.lfd.uci.edu/~gohlke/pythonlibs/#python-lzf) of `python-lzf`* (see [https://github.com/teepark/python-lzf/issues/5](https://github.com/teepark/python-lzf/issues/5))
 4. Run `main.py`
   - `python src/main.py`
+
+## Bugs
+
+Editing certain values without the game engine running may have unwanted side effects. This is
+not a comprehensive list, just some observations I've made from using the editor.
+
+*If adding perks to a character:*
+  - You can safely add perks with passive bonuses
+  - If you want to add an ability-granting perk (e.g. 'Rally') your character will not get the linked ability in-game
+  - Takeaway: add perk points for non-passive perks and add these perks in-game
+
+*If increasing character's skills:*
+  - Using the editor to max out a skill level will not grant skill-related crafting recipes
+  - Takeaway: if you want the crafting recipes, increase skill points and raise that skill in-game
 
 ## Development Notes
 
@@ -55,8 +68,5 @@ Run `pylama src` to view any linter conflicts.
 
 - A more efficient way to find the Wasteland 3 save files on a given system
   - Should put common locations in the README
-- Filtering by quirk, background, and perks
-- Make Perk and Inventory screens searchable
 - Allow manually adding items/perks if not available in provided text files
-- A more efficient inventory browser (large inventories cause a noticeable app slow-down)
 - Include pre-built releases for anyone looking to test out the project!
