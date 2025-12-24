@@ -3,6 +3,7 @@
 A save game editor for inXile Entertainment's Wasteland 3
 
 *This was tested against save files from the Linux Steam version (1.6.9.420.309496) without any DLC.*
+*Also tested against save files from the GOG version (1.6.9.420.309496.1) with both DLCs.*
 
 ![](media/demo.webp)
 
@@ -23,6 +24,7 @@ Use the `File- > Load Save Game` dialog. Browse to your save game file, and edit
 
 
 ## Installation
+*Note:* Requires Python 3.9
 
 1. Clone the repository to your local system
   - `git clone https://github.com/stolinator/w3se.git`
